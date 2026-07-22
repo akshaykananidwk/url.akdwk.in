@@ -1,0 +1,17 @@
+# Root .htaccess — makes the app work even when the vhost's document root
+# points at the project folder instead of public/ (common on shared hosting
+# and aaPanel/cPanel default setups). All requests are transparently served
+# from public/, and direct access to sensitive files is blocked.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Never expose these paths
+    RewriteRule ^(\.env|\.git|storage|bootstrap|config|database|routes|app|vendor|addons|lang|resources|docs|tests)(/|$) - [F,L]
+
+    # Serve everything through public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Deny directory listings
+Options -Indexes

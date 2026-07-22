@@ -5,7 +5,7 @@
 /public/storage
 /storage/*.key
 /storage/pail
-/vendor
+# /vendor committed: shared-hosting deploys work without Composer
 .env
 .env.backup
 .env.production
