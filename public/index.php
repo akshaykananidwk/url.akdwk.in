@@ -2,6 +2,11 @@
 
 use Illuminate\Http\Request;
 
+// Hide deprecation notices (e.g. PHP 8.5 renaming PDO::MYSQL_ATTR_SSL_CA).
+// These are harmless but pollute the page when a host has display_errors on;
+// real warnings, errors and Laravel's own debug output are unaffected.
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 define('LARAVEL_START', microtime(true));
 
 // Determine if the application is in maintenance mode...
