@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>GitHub Update Panel · અપડેટ પેનલ</title>
+
+<!-- CodeMirror (editor + syntax highlight + line numbers) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0f172a; --bg2:#1e293b; --bg3:#111c33; --line:#293548; --line2:#334155;
+    --txt:#e2e8f0; --mut:#94a3b8; --brand:#6366f1; --brand2:#4f46e5;
+    --ok:#22c55e; --err:#ef4444; --warn:#f59e0b; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Gujarati',sans-serif;
+    font-size:14px; -webkit-tap-highlight-color:transparent;
+    display:flex; flex-direction:column;
+  }
+  a{color:var(--brand)}
+  .mut{color:var(--mut)} .en{color:var(--mut);font-size:.82em}
+  button{
+    font:inherit; cursor:pointer; border:0; border-radius:10px; padding:0 14px;
+    min-height:40px; display:inline-flex; align-items:center; gap:6px;
+    background:var(--bg2); color:var(--txt); transition:.15s; white-space:nowrap;
+  }
+  button:hover{filter:brightness(1.15)} button:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:var(--brand);color:#fff} .btn-primary:hover{background:var(--brand2)}
+  .btn-danger{background:var(--err);color:#fff}
+  .btn-ok{background:var(--ok);color:#04220f}
+  .btn-sm{min-height:32px;padding:0 10px;border-radius:8px;font-size:12.5px}
+  .btn-ghost{background:transparent;border:1px solid var(--line2)}
+  input,textarea,select{
+    font:inherit; width:100%; background:var(--bg3); color:var(--txt);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 11px; min-height:40px;
+  }
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
+  label{display:block;font-size:12px;color:var(--mut);margin:0 0 4px 2px}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius)}
+
+  /* Header / settings */
+  header{background:var(--bg2);border-bottom:1px solid var(--line);padding:10px 14px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+  .logo{width:32px;height:32px;border-radius:9px;background:var(--brand);display:grid;place-items:center;color:#fff}
+  .settings{display:grid;grid-template-columns:1.4fr .8fr 1.6fr auto;gap:10px;margin-top:10px}
+  .settings .actions{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+  .status-dot{width:10px;height:10px;border-radius:50%;background:var(--mut);display:inline-block}
+  .status-dot.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .status-dot.err{background:var(--err);box-shadow:0 0 8px var(--err)}
+
+  /* Layout */
+  main{flex:1;display:flex;min-height:0}
+  aside{width:300px;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg2);min-height:0}
+  .aside-top{padding:10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+  .tree{overflow:auto;flex:1;padding:6px 4px}
+  .row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;user-select:none;font-size:13px}
+  .row:hover{background:var(--bg3)}
+  .row.active{background:var(--brand);color:#fff}
+  .row .ic{width:16px;text-align:center;flex-shrink:0;color:var(--mut)}
+  .row.active .ic{color:#fff}
+  .row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .cb{margin-left:auto}
+  .editor-wrap{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+  .toolbar{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap}
+  .path{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:120px}
+  .cm-host{flex:1;min-height:0;position:relative}
+  .CodeMirror{height:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+  .empty{flex:1;display:grid;place-items:center;color:var(--mut);text-align:center;padding:30px}
+  .commitbar{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);align-items:center;flex-wrap:wrap}
+  .commitbar input{flex:1;min-width:140px}
+
+  /* Toast */
+  #toasts{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:80;max-width:92vw}
+  .toast{background:var(--bg2);border:1px solid var(--line2);border-left:4px solid var(--brand);border-radius:10px;padding:11px 14px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-size:13px;animation:slideIn .2s}
+  .toast.ok{border-left-color:var(--ok)} .toast.err{border-left-color:var(--err)} .toast.warn{border-left-color:var(--warn)}
+  @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+
+  /* Spinner */
+  .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #globalLoader{position:fixed;top:0;left:0;right:0;height:3px;background:var(--brand);transform:scaleX(0);transform-origin:left;transition:transform .3s;z-index:90}
+  #globalLoader.on{animation:load 1.2s ease-in-out infinite}
+  @keyframes load{0%{transform:scaleX(0)}50%{transform:scaleX(.7)}100%{transform:scaleX(1);opacity:.4}}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(2,6,23,.7);display:none;place-items:center;z-index:70;padding:14px}
+  .modal-bg.show{display:grid}
+  .modal{width:min(640px,100%);max-height:90vh;overflow:auto}
+  .modal .hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .modal .bd{padding:16px;display:flex;flex-direction:column;gap:12px}
+  .modal .ft{padding:14px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+  .hist-item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:10px}
+  .hist-item .msg{flex:1;min-width:0}
+  .hist-item .msg .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mono{font-family:ui-monospace,monospace;font-size:12px}
+  .hamb{display:none}
+  .backdrop{display:none}
+
+  /* Mobile */
+  @media(max-width:820px){
+    .settings{grid-template-columns:1fr 1fr}
+    .settings .actions{grid-column:1/-1}
+    aside{position:fixed;z-index:60;top:0;bottom:0;left:0;transform:translateX(-100%);transition:.2s;box-shadow:0 0 40px rgba(0,0,0,.5)}
+    aside.open{transform:none}
+    .hamb{display:inline-flex}
+    .backdrop.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55}
+  }
+</style>
+</head>
+<body>
+
+<div id="globalLoader"></div>
+
+<header>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <button class="hamb btn-ghost btn-sm" onclick="toggleAside()">☰</button>
+    <div class="brand"><span class="logo">⛓</span> <span>અપડેટ પેનલ <span class="en">GitHub Update Panel</span></span></div>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText" class="mut" style="font-size:12.5px">Not connected</span>
+    </span>
+  </div>
+
+  <div class="settings">
+    <div>
+      <label>Repo <span class="en">(owner/repo)</span></label>
+      <input id="repo" placeholder="akshaykananidwk/url.akdwk.in" autocapitalize="off" autocomplete="off" spellcheck="false">
+    </div>
+    <div>
+      <label>Branch <span class="en">શાખા</span></label>
+      <input id="branch" placeholder="main" autocapitalize="off" autocomplete="off" spellcheck="false">
+    </div>
+    <div>
+      <label>Token <span class="en">(Personal Access Token)</span></label>
+      <input id="token" type="password" placeholder="ghp_… / github_pat_…" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="saveSettings()">💾 <span>Save</span></button>
+      <button class="btn-ghost" onclick="testConnection()">🔌 <span>Test</span></button>
+      <button class="btn-ghost" onclick="clearToken()" title="Remove token from this browser">🧹 <span>Clear</span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="backdrop" id="backdrop" onclick="toggleAside()"></div>
+  <aside id="aside">
+    <div class="aside-top">
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary btn-sm" style="flex:1" onclick="loadTree()">🔄 <span>Load files</span></button>
+        <button class="btn-ghost btn-sm" onclick="openNew()" title="New file · નવી ફાઇલ">➕</button>
+        <button class="btn-ghost btn-sm" onclick="openUpload()" title="Upload asset · અપલોડ">🖼️</button>
+        <button class="btn-ghost btn-sm" onclick="downloadRepo()" title="Download whole repo as ZIP · આખું ZIP">⬇</button>
+      </div>
+      <input id="search" placeholder="🔎 Search files… શોધો" oninput="renderTree()" autocapitalize="off" spellcheck="false">
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="margin:0;display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="bulkMode" style="width:auto;min-height:0" onchange="renderTree()"> <span style="font-size:12px">Bulk select</span>
+        </label>
+        <button class="btn-ghost btn-sm" style="margin-left:auto" onclick="openBulk()" id="bulkBtn" disabled>Find &amp; Replace</button>
+      </div>
+    </div>
+    <div class="tree" id="tree"><div class="mut" style="padding:14px;text-align:center">Connect &amp; press <b>Load files</b></div></div>
+  </aside>
+
+  <div class="editor-wrap">
+    <div class="toolbar">
+      <span class="path" id="curPath">— કોઈ ફાઇલ પસંદ નથી —</span>
+      <button class="btn-ghost btn-sm" onclick="openHistory()" id="histBtn" disabled>🕑 History</button>
+      <button class="btn-ghost btn-sm" onclick="downloadCurrent()" id="dlBtn" disabled>⬇ Download</button>
+      <button class="btn-ghost btn-sm" onclick="previewFile()" id="prevBtn" disabled>👁 Preview</button>
+      <button class="btn-ghost btn-sm" onclick="cancelEdit()" id="cancelBtn" disabled>↩ Cancel</button>
+      <button class="btn-danger btn-sm" onclick="deleteFile()" id="delBtn" disabled>🗑 Delete</button>
+    </div>
+
+    <div class="cm-host" id="cmHost" style="display:none"></div>
+    <div class="empty" id="emptyState">
+      <div>
+        <div style="font-size:40px">📝</div>
+        <p>ડાબી બાજુથી ફાઇલ પસંદ કરો<br><span class="en">Select a file from the left to edit it</span></p>
+      </div>
+    </div>
+
+    <div class="commitbar">
+      <input id="commitMsg" placeholder="Commit message… (auto)">
+      <span id="shaBadge" class="mono mut" title="File SHA"></span>
+      <button class="btn-ok" onclick="commitFile()" id="saveBtn" disabled>✔ Commit &amp; Push</button>
+    </div>
+  </div>
+</main>
+
+<!-- ===== New File modal ===== -->
+<div class="modal-bg" id="mNew">
+  <div class="card modal">
+    <div class="hd"><b>➕ New file <span class="en">નવી ફાઇલ</span></b><button class="btn-ghost btn-sm" onclick="close_('mNew')">✕</button></div>
+    <div class="bd">
+      <div><label>Path <span class="en">(e.g. public/.user.ini)</span></label><input id="nfPath" placeholder="folder/name.ext" spellcheck="false" autocapitalize="off"></div>
+      <div><label>Content <span class="en">સામગ્રી</span></label><textarea id="nfBody" rows="10" spellcheck="false" style="font-family:ui-monospace,monospace"></textarea></div>
+      <div><label>Commit message</label><input id="nfMsg" placeholder="Create file via admin panel"></div>
+    </div>
+    <div class="ft"><button class="btn-ghost" onclick="close_('mNew')">Cancel</button><button class="btn-primary" onclick="createFile()">Create &amp; Push</button></div>
+  </div>
+</div>
+
+<!-- ===== Upload modal ===== -->
+<div class="modal-bg" id="mUp">
+  <div class="card modal">
+    <div class="hd"><b>🖼️ Upload asset <span class="en">ફાઇલ અપલોડ</span></b><button class="btn-ghost btn-sm" onclick="close_('mUp')">✕</button></div>
+    <div class="bd">
+      <div><label>Pick a file <span class="en">(image / any binary)</span></label><input id="upFile" type="file" onchange="upPreview()"></div>
+      <div id="upThumb" style="display:none;text-align:center"><img id="upImg" style="max-height:150px;border-radius:8px"></div>
+      <div><label>Destination folder <span class="en">(e.g. public/img)</span></label><input id="upDir" placeholder="public/img" spellcheck="false" autocapitalize="off"></div>
+      <div><label>File name <span class="en">નામ</span></label><input id="upName" placeholder="logo.png" spellcheck="false" autocapitalize="off"></div>
+    </div>
+    <div class="ft"><button class="btn-ghost" onclick="close_('mUp')">Cancel</button><button class="btn-primary" onclick="uploadAsset()">Upload &amp; Push</button></div>
+  </div>
+</div>
+
+<!-- ===== Bulk find/replace modal ===== -->
+<div class="modal-bg" id="mBulk">
+  <div class="card modal">
+    <div class="hd"><b>🔁 Bulk find &amp; replace <span class="en">બધામાં બદલો</span></b><button class="btn-ghost btn-sm" onclick="close_('mBulk')">✕</button></div>
+    <div class="bd">
+      <p class="mut" style="margin:0">Selected files <span class="en">પસંદ કરેલી ફાઇલો</span>: <b id="bulkCount">0</b></p>
+      <div><label>Find <span class="en">શોધો</span></label><input id="bkFind" spellcheck="false"></div>
+      <div><label>Replace with <span class="en">બદલો</span></label><input id="bkRepl" spellcheck="false"></div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="bkRegex" style="width:auto;min-height:0"> Treat "Find" as regex</label>
+      <div id="bulkList" class="mono mut" style="max-height:150px;overflow:auto"></div>
+    </div>
+    <div class="ft"><button class="btn-ghost" onclick="close_('mBulk')">Cancel</button><button class="btn-primary" onclick="runBulk()">Replace &amp; Commit each</button></div>
+  </div>
+</div>
+
+<!-- ===== History modal ===== -->
+<div class="modal-bg" id="mHist">
+  <div class="card modal">
+    <div class="hd"><b>🕑 History <span class="en">ઇતિહાસ</span></b><button class="btn-ghost btn-sm" onclick="close_('mHist')">✕</button></div>
+    <div class="bd" id="histBody"><div class="spin" style="border-top-color:var(--brand)"></div></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* =====================================================================
+   GitHub Update Panel — single-file admin.
+   All state in localStorage; all calls hit the GitHub REST API directly.
+   The token never leaves the browser and is never printed to console/DOM.
+   ===================================================================== */
+
+const LS = 'ghpanel.v1';
+let cfg = { repo:'', branch:'main', token:'' };
+let tree = [];               // flat list from git/trees
+let expanded = {};           // folder path -> bool
+let current = null;          // {path, sha}
+let cm = null;               // CodeMirror instance
+let selected = new Set();    // bulk selection
+
+/* ---------- tiny helpers ---------- */
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder();
+function toast(msg, type='ok', html=false){
+  const t = document.createElement('div');
+  t.className = 'toast '+type;
+  t[html?'innerHTML':'textContent'] = msg;
+  $('toasts').appendChild(t);
+  setTimeout(()=>{t.style.opacity=0; setTimeout(()=>t.remove(),300);}, type==='err'?6000:4000);
+}
+let loaders = 0;
+function loading(on){ loaders += on?1:-1; loaders=Math.max(0,loaders); $('globalLoader').classList.toggle('on', loaders>0); }
+
+/* UTF-8 safe base64 (handles Gujarati, emoji, etc.) */
+function b64encode(str){
+  const bytes = enc.encode(str); let bin='';
+  for(const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+function b64decode(b64){
+  const bin = atob(b64.replace(/\s/g,''));
+  const bytes = Uint8Array.from(bin, c=>c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+/* ---------- GitHub API core ---------- */
+async function gh(path, opts={}){
+  if(!cfg.token) throw new Error('Token missing — enter your GitHub token first.');
+  const res = await fetch('https://api.github.com'+path, {
+    ...opts,
+    headers:{
+      'Authorization':'Bearer '+cfg.token,
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':'2022-11-28',
+      ...(opts.body?{'Content-Type':'application/json'}:{}),
+      ...(opts.headers||{})
+    }
+  });
+  if(res.status===204) return {};
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok){
+    const msg = data.message || res.statusText;
+    throw new Error(msg + (data.errors?(' — '+JSON.stringify(data.errors)):''));
+  }
+  return data;
+}
+function repoBase(){
+  const [o,r] = cfg.repo.split('/');
+  if(!o||!r) throw new Error('Repo must be in owner/repo format.');
+  return `/repos/${o}/${r}`;
+}
+
+/* ---------- settings ---------- */
+function loadSettings(){
+  try{ cfg = {...cfg, ...(JSON.parse(localStorage.getItem(LS))||{})}; }catch(e){}
+  $('repo').value = cfg.repo||''; $('branch').value = cfg.branch||'main'; $('token').value = cfg.token||'';
+}
+function saveSettings(){
+  cfg.repo = $('repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/$/,'');
+  cfg.branch = $('branch').value.trim() || 'main';
+  cfg.token = $('token').value.trim();
+  $('repo').value = cfg.repo; $('branch').value = cfg.branch;
+  localStorage.setItem(LS, JSON.stringify(cfg));
+  toast('Settings saved · સેટિંગ્સ સાચવ્યું','ok');
+  if(cfg.token && cfg.repo) testConnection();
+}
+function clearToken(){
+  cfg.token=''; $('token').value='';
+  const stored = JSON.parse(localStorage.getItem(LS)||'{}'); stored.token=''; localStorage.setItem(LS, JSON.stringify(stored));
+  setStatus(null,'Token cleared'); toast('Token removed from this browser','warn');
+}
+function setStatus(ok, text){
+  $('statusDot').className = 'status-dot' + (ok===true?' ok':ok===false?' err':'');
+  $('statusText').textContent = text;
+}
+async function testConnection(){
+  try{
+    saveSilently();
+    loading(true); setStatus(null,'Connecting…');
+    const r = await gh(repoBase());
+    setStatus(true, `Connected · ${r.full_name} (${r.private?'private':'public'})`);
+    toast('Connection OK · જોડાણ સફળ ✓','ok');
+  }catch(e){ setStatus(false, 'Failed: '+e.message); toast('Connection failed: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+function saveSilently(){
+  cfg.repo=$('repo').value.trim(); cfg.branch=$('branch').value.trim()||'main'; cfg.token=$('token').value.trim();
+  localStorage.setItem(LS, JSON.stringify(cfg));
+}
+
+/* ---------- file tree ---------- */
+async function loadTree(){
+  try{
+    saveSilently();
+    if(!cfg.repo) return toast('Enter repo first','err');
+    loading(true); $('tree').innerHTML='<div style="padding:14px;text-align:center"><span class="spin" style="border-top-color:var(--brand)"></span></div>';
+    const data = await gh(`${repoBase()}/git/trees/${encodeURIComponent(cfg.branch)}?recursive=1`);
+    tree = (data.tree||[]).filter(n=>n.type==='blob'||n.type==='tree');
+    if(data.truncated) toast('Repo is large — file list was truncated by GitHub.','warn');
+    // auto-expand top level
+    expanded = {};
+    renderTree();
+    toast(`Loaded ${tree.filter(n=>n.type==='blob').length} files`,'ok');
+    setStatus(true,'Connected · '+cfg.repo);
+  }catch(e){ $('tree').innerHTML=''; toast('Load failed: '+e.message,'err'); setStatus(false,e.message); }
+  finally{ loading(false); }
+}
+
+/* Build a nested structure then render, honouring search + expand state. */
+function renderTree(){
+  const q = $('search').value.trim().toLowerCase();
+  const bulk = $('bulkMode').checked;
+  $('bulkBtn').disabled = !bulk || selected.size===0;
+  const host = $('tree'); host.innerHTML='';
+  if(!tree.length){ host.innerHTML='<div class="mut" style="padding:14px;text-align:center">No files loaded</div>'; return; }
+
+  // When searching, show a flat filtered list of matching files.
+  if(q){
+    const hits = tree.filter(n=>n.type==='blob' && n.path.toLowerCase().includes(q)).slice(0,400);
+    if(!hits.length){ host.innerHTML='<div class="mut" style="padding:14px;text-align:center">No match</div>'; return; }
+    hits.forEach(n=>host.appendChild(fileRow(n, n.path, bulk)));
+    return;
+  }
+
+  // Otherwise a proper expandable tree.
+  const roots = buildNested();
+  const walk = (node, depth)=>{
+    // folders first, then files, alphabetically
+    const entries = Object.values(node.children).sort((a,b)=>
+      (a.isDir===b.isDir)? a.name.localeCompare(b.name) : (a.isDir?-1:1));
+    for(const e of entries){
+      if(e.isDir){
+        const open = !!expanded[e.path];
+        const r = document.createElement('div');
+        r.className='row'; r.style.paddingLeft=(8+depth*14)+'px';
+        r.innerHTML=`<span class="ic">${open?'📂':'📁'}</span><span class="nm">${esc(e.name)}</span><span class="mut" style="margin-left:auto;font-size:11px">${countFiles(e)}</span>`;
+        r.onclick=()=>{ expanded[e.path]=!open; renderTree(); };
+        host.appendChild(r);
+        if(open) walk(e, depth+1);
+      }else{
+        host.appendChild(fileRow(e.node, e.path, bulk, depth));
+      }
+    }
+  };
+  walk(roots, 0);
+}
+function buildNested(){
+  const root={children:{}};
+  for(const n of tree){
+    const parts=n.path.split('/');
+    let cur=root, acc='';
+    parts.forEach((p,i)=>{
+      acc = acc? acc+'/'+p : p;
+      const isLast = i===parts.length-1;
+      const isDir = !(isLast && n.type==='blob');
+      if(!cur.children[p]) cur.children[p]={name:p,path:acc,isDir,children:{},node:null};
+      if(isLast && n.type==='blob') cur.children[p].node=n;
+      cur=cur.children[p];
+    });
+  }
+  return root;
+}
+function countFiles(dir){ let c=0; const w=d=>{for(const e of Object.values(d.children)){e.isDir?w(e):c++;}}; w(dir); return c; }
+function fileRow(node, path, bulk, depth=0){
+  const r=document.createElement('div');
+  r.className='row'+(current&&current.path===path?' active':'');
+  r.style.paddingLeft=(8+depth*14)+'px';
+  const icon = fileIcon(path);
+  r.innerHTML=`<span class="ic">${icon}</span><span class="nm" title="${esc(path)}">${esc(node.path.split('/').pop())}</span>`;
+  if(bulk){
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.className='cb'; cb.style.width='auto'; cb.style.minHeight=0;
+    cb.checked=selected.has(path);
+    cb.onclick=e=>{ e.stopPropagation(); cb.checked?selected.add(path):selected.delete(path); $('bulkBtn').disabled=selected.size===0; };
+    r.appendChild(cb);
+  }
+  r.onclick=()=>openFile(path);
+  return r;
+}
+function fileIcon(p){
+  const e=p.split('.').pop().toLowerCase();
+  if(['png','jpg','jpeg','gif','webp','svg','ico'].includes(e)) return '🖼️';
+  if(['php'].includes(e)) return '🐘';
+  if(['js','mjs','ts'].includes(e)) return '📜';
+  if(['css'].includes(e)) return '🎨';
+  if(['html','htm','blade'].includes(e)) return '🌐';
+  if(['json','lock'].includes(e)) return '⚙️';
+  if(['md'].includes(e)) return '📄';
+  return '📄';
+}
+const esc = s => (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- open / edit ---------- */
+const BINARY=/\.(png|jpe?g|gif|webp|ico|pdf|zip|woff2?|ttf|eot|mp3|mp4|mov)$/i;
+async function openFile(path){
+  try{
+    loading(true);
+    const r = await gh(`${repoBase()}/contents/${encPath(path)}?ref=${encodeURIComponent(cfg.branch)}`);
+    current = { path, sha:r.sha };
+    highlightActive();
+    $('curPath').textContent = path;
+    $('shaBadge').textContent = 'sha '+r.sha.slice(0,7);
+    ['saveBtn','cancelBtn','delBtn','histBtn','dlBtn'].forEach(id=>$(id).disabled=false);
+    $('commitMsg').value = `Updated ${path} via admin panel`;
+    current.downloadUrl = r.download_url || '';
+
+    if(BINARY.test(path)){
+      // Show binary (image) preview instead of text editor.
+      showBinary(path, r);
+    }else{
+      const text = b64decode(r.content||'');
+      showEditor(path, text);
+    }
+    if(window.innerWidth<=820) toggleAside(false);
+  }catch(e){ toast('Open failed: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+function showEditor(path, text){
+  $('emptyState').style.display='none';
+  $('cmHost').style.display='block';
+  $('cmHost').innerHTML='';
+  cm = CodeMirror($('cmHost'), {
+    value:text, mode:modeFor(path), theme:'material-darker',
+    lineNumbers:true, lineWrapping:true, autofocus:true, tabSize:4, indentUnit:4
+  });
+  $('prevBtn').disabled = !/\.(html?|blade\.php)$/i.test(path);
+}
+function showBinary(path, r){
+  $('cmHost').style.display='none';
+  cm=null;
+  $('emptyState').style.display='grid';
+  const url = r.download_url || '';
+  $('emptyState').innerHTML = `<div><div style="font-size:14px" class="mut">Binary file — preview only</div>
+    <img src="${esc(url)}" style="max-width:min(420px,80vw);max-height:50vh;border-radius:10px;margin-top:12px" onerror="this.style.display='none'">
+    <div class="mono mut" style="margin-top:10px">${esc(path)} · ${(r.size/1024).toFixed(1)} KB</div></div>`;
+  $('saveBtn').disabled=true; $('prevBtn').disabled=true;
+}
+function modeFor(p){
+  const e=p.toLowerCase();
+  if(/\.blade\.php$|\.php$/.test(e)) return 'application/x-httpd-php';
+  if(/\.html?$/.test(e)) return 'htmlmixed';
+  if(/\.(js|mjs)$/.test(e)) return 'javascript';
+  if(/\.json$/.test(e)) return {name:'javascript',json:true};
+  if(/\.css$/.test(e)) return 'css';
+  if(/\.md$/.test(e)) return 'markdown';
+  if(/\.ya?ml$/.test(e)) return 'yaml';
+  if(/\.(sh|bash|env|ini|conf)$/.test(e) || /\.user\.ini$/.test(e)) return 'shell';
+  return 'text/plain';
+}
+function highlightActive(){ document.querySelectorAll('.tree .row').forEach(r=>{
+  const nm=r.querySelector('.nm'); if(nm && nm.getAttribute('title')===current?.path) r.classList.add('active'); else r.classList.remove('active');
+}); }
+function cancelEdit(){
+  if(current && cm){ if(!confirm('Discard unsaved changes? · ફેરફાર રદ કરવા છે?')) return; }
+  current=null; cm=null;
+  $('cmHost').style.display='none'; $('emptyState').style.display='grid';
+  $('emptyState').innerHTML=`<div><div style="font-size:40px">📝</div><p>ડાબી બાજુથી ફાઇલ પસંદ કરો<br><span class="en">Select a file from the left</span></p></div>`;
+  $('curPath').textContent='— કોઈ ફાઇલ પસંદ નથી —'; $('shaBadge').textContent='';
+  ['saveBtn','cancelBtn','delBtn','histBtn','prevBtn','dlBtn'].forEach(id=>$(id).disabled=true);
+  highlightActive();
+}
+
+/* ---------- download ---------- */
+function saveBlob(blob, name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+function downloadCurrent(){
+  if(!current) return;
+  const name=current.path.split('/').pop();
+  if(cm){ saveBlob(new Blob([cm.getValue()],{type:'text/plain'}), name); return; }
+  // binary: fetch the raw file (works for private repos when download_url carries a token param)
+  loading(true);
+  fetch(current.downloadUrl).then(r=>r.blob()).then(b=>{ saveBlob(b,name); }).catch(e=>toast('Download failed: '+e.message,'err')).finally(()=>loading(false));
+}
+async function downloadRepo(){
+  try{
+    saveSilently();
+    if(!cfg.repo||!cfg.token) return toast('Enter repo + token first','err');
+    loading(true); toast('Preparing ZIP… થોડી વાર','warn');
+    const res = await fetch(`https://api.github.com${repoBase()}/zipball/${encodeURIComponent(cfg.branch)}`,
+      {headers:{'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json'}});
+    if(!res.ok) throw new Error(res.status+' '+res.statusText);
+    const blob = await res.blob();
+    saveBlob(blob, cfg.repo.split('/')[1]+'-'+cfg.branch+'.zip');
+    toast('ZIP downloaded ✓ · આખું repo','ok');
+  }catch(e){ toast('ZIP download failed: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+
+/* ---------- commit ---------- */
+async function commitFile(){
+  if(!current||!cm) return;
+  try{
+    loading(true); $('saveBtn').disabled=true;
+    const body = {
+      message: $('commitMsg').value.trim() || `Updated ${current.path} via admin panel`,
+      content: b64encode(cm.getValue()),
+      sha: current.sha,
+      branch: cfg.branch
+    };
+    const r = await gh(`${repoBase()}/contents/${encPath(current.path)}`, {method:'PUT', body:JSON.stringify(body)});
+    current.sha = r.content.sha;
+    $('shaBadge').textContent='sha '+current.sha.slice(0,7);
+    const url = r.commit.html_url;
+    toast(`Committed ✓ · <a href="${url}" target="_blank" rel="noopener">View commit ↗</a>`,'ok',true);
+  }catch(e){
+    toast('Commit failed: '+e.message,'err');
+    if(/does not match|sha/i.test(e.message)) toast('Tip: file changed on GitHub — reopen it to get the latest version.','warn');
+  }finally{ loading(false); $('saveBtn').disabled=false; }
+}
+
+/* ---------- preview (HTML in iframe) ---------- */
+function previewFile(){
+  if(!cm) return;
+  const w = window.open('', '_blank');
+  if(!w) return toast('Popup blocked','err');
+  w.document.open(); w.document.write(cm.getValue()); w.document.close();
+}
+
+/* ---------- delete ---------- */
+async function deleteFile(){
+  if(!current) return;
+  if(!confirm(`Delete this file? · આ ફાઇલ કાઢી નાખવી છે?\n\n${current.path}\n\nThis cannot be undone.`)) return;
+  try{
+    loading(true);
+    await gh(`${repoBase()}/contents/${encPath(current.path)}`, {method:'DELETE',
+      body:JSON.stringify({message:`Deleted ${current.path} via admin panel`, sha:current.sha, branch:cfg.branch})});
+    toast('File deleted ✓','ok');
+    tree = tree.filter(n=>n.path!==current.path);
+    cancelEdit(); renderTree();
+  }catch(e){ toast('Delete failed: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+
+/* ---------- new file ---------- */
+function openNew(){ $('nfPath').value=''; $('nfBody').value=''; $('nfMsg').value=''; open_('mNew'); }
+async function createFile(){
+  const path=$('nfPath').value.trim().replace(/^\/+/,'');
+  if(!path) return toast('Path required','err');
+  try{
+    loading(true);
+    const r = await gh(`${repoBase()}/contents/${encPath(path)}`, {method:'PUT',
+      body:JSON.stringify({message:$('nfMsg').value.trim()||`Create ${path} via admin panel`, content:b64encode($('nfBody').value), branch:cfg.branch})});
+    toast(`Created ✓ · <a href="${r.commit.html_url}" target="_blank" rel="noopener">View ↗</a>`,'ok',true);
+    close_('mNew');
+    tree.push({path, type:'blob'}); renderTree(); openFile(path);
+  }catch(e){ toast('Create failed: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+
+/* ---------- upload asset ---------- */
+let upData=null;
+function openUpload(){ $('upFile').value=''; $('upDir').value=''; $('upName').value=''; $('upThumb').style.display='none'; upData=null; open_('mUp'); }
+function upPreview(){
+  const f=$('upFile').files[0]; if(!f) return;
+  $('upName').value=f.name;
+  const rd=new FileReader();
+  rd.onload=()=>{ upData=rd.result.split(',')[1]; // base64 without data: prefix
+    if(f.type.startsWith('image/')){ $('upImg').src=rd.result; $('upThumb').style.display='block'; } else $('upThumb').style.display='none';
+  };
+  rd.readAsDataURL(f);
+}
+async function uploadAsset(){
+  if(!upData) return toast('Pick a file first','err');
+  const dir=$('upDir').value.trim().replace(/^\/+|\/+$/g,'');
+  const name=$('upName').value.trim();
+  if(!name) return toast('File name required','err');
+  const path = dir? dir+'/'+name : name;
+  try{
+    loading(true);
+    const r = await gh(`${repoBase()}/contents/${encPath(path)}`, {method:'PUT',
+      body:JSON.stringify({message:`Upload ${path} via admin panel`, content:upData, branch:cfg.branch})});
+    toast(`Uploaded ✓ · <a href="${r.commit.html_url}" target="_blank" rel="noopener">View ↗</a>`,'ok',true);
+    close_('mUp'); tree.push({path,type:'blob'}); renderTree();
+  }catch(e){ toast('Upload failed: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+
+/* ---------- bulk find & replace ---------- */
+function openBulk(){
+  if(!selected.size) return toast('Select files first (tick Bulk select)','warn');
+  $('bulkCount').textContent=selected.size;
+  $('bkFind').value=''; $('bkRepl').value='';
+  $('bulkList').innerHTML=[...selected].map(esc).join('<br>');
+  open_('mBulk');
+}
+async function runBulk(){
+  const find=$('bkFind').value, repl=$('bkRepl').value, isRe=$('bkRegex').checked;
+  if(!find) return toast('Enter text to find','err');
+  let re; try{ re = isRe? new RegExp(find,'g') : new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'); }
+  catch(e){ return toast('Bad regex: '+e.message,'err'); }
+  const files=[...selected]; let done=0, changed=0, skipped=0;
+  loading(true);
+  for(const path of files){
+    try{
+      const r = await gh(`${repoBase()}/contents/${encPath(path)}?ref=${encodeURIComponent(cfg.branch)}`);
+      if(BINARY.test(path)){ skipped++; continue; }
+      const text=b64decode(r.content||'');
+      if(!re.test(text)){ re.lastIndex=0; skipped++; continue; }
+      re.lastIndex=0;
+      const out=text.replace(re, repl);
+      await gh(`${repoBase()}/contents/${encPath(path)}`, {method:'PUT',
+        body:JSON.stringify({message:`Bulk replace in ${path} via admin panel`, content:b64encode(out), sha:r.sha, branch:cfg.branch})});
+      changed++;
+    }catch(e){ toast(`Failed ${path}: ${e.message}`,'err'); }
+    done++;
+  }
+  loading(false);
+  toast(`Bulk done · ${changed} changed, ${skipped} unchanged`,'ok');
+  close_('mBulk');
+  if(current && selected.has(current.path)) openFile(current.path);
+}
+
+/* ---------- history + revert ---------- */
+async function openHistory(){
+  if(!current) return;
+  open_('mHist'); $('histBody').innerHTML='<div class="spin" style="border-top-color:var(--brand)"></div>';
+  try{
+    const commits = await gh(`${repoBase()}/commits?path=${encPath(current.path)}&sha=${encodeURIComponent(cfg.branch)}&per_page=10`);
+    if(!commits.length){ $('histBody').innerHTML='<p class="mut">No history</p>'; return; }
+    $('histBody').innerHTML='';
+    commits.forEach(c=>{
+      const d=new Date(c.commit.author.date).toLocaleString();
+      const el=document.createElement('div'); el.className='hist-item';
+      el.innerHTML=`<div class="msg">
+          <div class="t">${esc(c.commit.message.split('\n')[0])}</div>
+          <div class="mut mono" style="font-size:11px">${esc(c.commit.author.name)} · ${d} · ${c.sha.slice(0,7)}</div>
+        </div>
+        <a class="btn-ghost btn-sm" href="${c.html_url}" target="_blank" rel="noopener">↗</a>
+        <button class="btn-ghost btn-sm" data-sha="${c.sha}">↩ Revert</button>`;
+      el.querySelector('button[data-sha]').onclick=()=>revertTo(c.sha, c.commit.message.split('\n')[0]);
+      $('histBody').appendChild(el);
+    });
+  }catch(e){ $('histBody').innerHTML='<p class="err">'+esc(e.message)+'</p>'; }
+}
+async function revertTo(commitSha, label){
+  if(!confirm(`Revert this file to version:\n"${label}" (${commitSha.slice(0,7)}) ?\n\nફાઇલ આ જૂના version પર લઈ જવી છે?`)) return;
+  try{
+    loading(true);
+    // content of the file AT that commit
+    const old = await gh(`${repoBase()}/contents/${encPath(current.path)}?ref=${commitSha}`);
+    // current sha (latest) needed to overwrite
+    const now = await gh(`${repoBase()}/contents/${encPath(current.path)}?ref=${encodeURIComponent(cfg.branch)}`);
+    const r = await gh(`${repoBase()}/contents/${encPath(current.path)}`, {method:'PUT',
+      body:JSON.stringify({message:`Revert ${current.path} to ${commitSha.slice(0,7)} via admin panel`, content:old.content.replace(/\s/g,''), sha:now.sha, branch:cfg.branch})});
+    toast(`Reverted ✓ · <a href="${r.commit.html_url}" target="_blank" rel="noopener">View ↗</a>`,'ok',true);
+    close_('mHist'); openFile(current.path);
+  }catch(e){ toast('Revert failed: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+
+/* ---------- misc ---------- */
+function encPath(p){ return p.split('/').map(encodeURIComponent).join('/'); }
+function open_(id){ $(id).classList.add('show'); }
+function close_(id){ $(id).classList.remove('show'); }
+function toggleAside(force){
+  const a=$('aside'), b=$('backdrop');
+  const open = force===undefined? !a.classList.contains('open') : force;
+  a.classList.toggle('open',open); b.classList.toggle('show',open);
+}
+
+/* Ctrl/Cmd+S saves the open file */
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){ e.preventDefault(); if(current&&cm&&!$('saveBtn').disabled) commitFile(); }
+});
+
+/* boot */
+loadSettings();
+if(cfg.repo && cfg.token){ testConnection(); }
+</script>
+</body>
+</html>
