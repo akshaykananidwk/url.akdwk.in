@@ -188,7 +188,7 @@ class RedirectController extends Controller
             }
         }
 
-        RecordClick::dispatch(
+        $args = [
             $link->id,
             $link->user_id,
             $request->ip(),
@@ -198,7 +198,18 @@ class RedirectController extends Controller
             $request->boolean('qr') || $request->query('src') === 'qr',
             now()->toDateTimeString(),
             GeoService::fromHeaders($request),
-        );
+        ];
+
+        // Reliability first: with the default "sync" queue (no worker running,
+        // typical on shared hosting) record the click AFTER the response is
+        // flushed to the visitor — the redirect stays fast and every click is
+        // still captured. When a real queue (database/redis + worker) is
+        // configured for scale, hand off to the worker instead.
+        if (config('queue.default') === 'sync') {
+            RecordClick::dispatchAfterResponse(...$args);
+        } else {
+            RecordClick::dispatch(...$args);
+        }
     }
 
     /** Resolve the requesting host to a custom Domain row (cached). null = main app domain. */

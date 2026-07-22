@@ -129,7 +129,7 @@ class InstallController extends Controller
             'DB_CONNECTION' => $data['driver'],
             'SESSION_DRIVER' => 'file',
             'CACHE_STORE' => 'file',
-            'QUEUE_CONNECTION' => 'database',
+            'QUEUE_CONNECTION' => 'sync',
         ];
         if ($data['driver'] === 'mysql') {
             $env += [

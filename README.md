@@ -55,7 +55,7 @@ A complete, production-ready, self-hosted URL shortener platform (in the spirit 
    * * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1
    ```
 
-6. Start a **queue worker** (records clicks, sends webhooks/emails):
+6. Click tracking works out of the box with **no worker needed** (clicks record right after the redirect response). A queue worker is **optional** — only add one if you switch `QUEUE_CONNECTION` to `database`/`redis` for very high traffic:
 
    ```bash
    php artisan queue:work --tries=3 --timeout=90

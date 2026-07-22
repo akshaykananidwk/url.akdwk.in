@@ -111,9 +111,9 @@ crontab -e -u www-data
 * * * * * cd /var/www/shortl && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-## 6. Queue worker (required)
+## 6. Queue worker (optional — only for high-traffic scaling)
 
-Clicks, webhooks and emails are processed asynchronously:
+By default (`QUEUE_CONNECTION=sync`) clicks are recorded in-process right after the response is sent, so **no worker is required**. Only if you switch to the `database`/`redis` queue for very high traffic do you need a worker:
 
 ```bash
 php artisan queue:work --tries=3 --timeout=90
