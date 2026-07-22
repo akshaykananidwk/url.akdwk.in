@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "Shortl API v1",
+    "description": "REST API for the self-hosted Shortl URL shortener. Authenticate every request with your API key: `Authorization: Bearer sk_...` (create keys under Developers → API Keys). Rate limits are per key/plan; responses include X-RateLimit-* headers.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{api_key}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://your-domain.com/api/v1" },
+    { "key": "api_key", "value": "sk_your_api_key" }
+  ],
+  "item": [
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Get account overview",
+          "request": { "method": "GET", "url": "{{base_url}}/me" }
+        }
+      ]
+    },
+    {
+      "name": "Links",
+      "item": [
+        {
+          "name": "List links",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/links?page=1&per_page=25&q=",
+              "host": ["{{base_url}}"],
+              "path": ["links"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "25" },
+                { "key": "q", "value": "", "description": "Search alias/destination/title" },
+                { "key": "space_id", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create link",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/links",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"https://example.com/very/long/url\",\n  \"alias\": \"my-alias\",\n  \"title\": \"Example link\",\n  \"expires_at\": null,\n  \"max_clicks\": null,\n  \"utm\": { \"source\": \"newsletter\", \"medium\": \"email\", \"campaign\": \"launch\" }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get link",
+          "request": { "method": "GET", "url": "{{base_url}}/links/:id" }
+        },
+        {
+          "name": "Update link",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/links/:id",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"https://example.com/new-destination\",\n  \"disabled\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete link",
+          "request": { "method": "DELETE", "url": "{{base_url}}/links/:id" }
+        },
+        {
+          "name": "Link statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/links/:id/stats?from=2026-01-01&to=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["links", ":id", "stats"],
+              "query": [
+                { "key": "from", "value": "2026-01-01" },
+                { "key": "to", "value": "2026-01-31" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Link QR code",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/links/:id/qr?format=png&size=400&fg=%23000000&bg=%23ffffff",
+              "host": ["{{base_url}}"],
+              "path": ["links", ":id", "qr"],
+              "query": [
+                { "key": "format", "value": "png", "description": "png | svg" },
+                { "key": "size", "value": "400" },
+                { "key": "fg", "value": "#000000" },
+                { "key": "bg", "value": "#ffffff" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Spaces",
+      "item": [
+        { "name": "List spaces", "request": { "method": "GET", "url": "{{base_url}}/spaces" } }
+      ]
+    },
+    {
+      "name": "Domains",
+      "item": [
+        { "name": "List domains", "request": { "method": "GET", "url": "{{base_url}}/domains" } }
+      ]
+    }
+  ]
+}

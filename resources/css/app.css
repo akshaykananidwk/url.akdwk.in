@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+    body {
+        @apply antialiased text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-950;
+    }
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    /* Buttons — every target is at least 44px tall for touch */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 font-medium text-sm
+            min-h-touch transition-colors duration-150 select-none cursor-pointer
+            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500
+            disabled:opacity-50 disabled:pointer-events-none;
+    }
+    .btn-primary {
+        @apply btn bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 shadow-sm;
+    }
+    .btn-secondary {
+        @apply btn bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100
+            dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700;
+    }
+    .btn-danger {
+        @apply btn bg-rose-600 text-white hover:bg-rose-700;
+    }
+    .btn-ghost {
+        @apply btn text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800;
+    }
+    .btn-sm {
+        @apply px-3 text-xs min-h-[36px] rounded-lg;
+    }
+
+    /* Form controls */
+    .input {
+        @apply block w-full rounded-xl border-slate-300 bg-white text-slate-900 text-sm min-h-touch
+            placeholder:text-slate-400 shadow-sm
+            focus:border-brand-500 focus:ring-brand-500
+            dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500;
+    }
+    .label {
+        @apply block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5;
+    }
+    .help {
+        @apply mt-1.5 text-xs text-slate-500 dark:text-slate-400;
+    }
+    .error {
+        @apply mt-1.5 text-xs font-medium text-rose-600 dark:text-rose-400;
+    }
+    .checkbox {
+        @apply h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800;
+    }
+
+    /* Cards */
+    .card {
+        @apply rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70
+            dark:bg-slate-900 dark:ring-slate-800;
+    }
+    .card-pad {
+        @apply p-4 sm:p-6;
+    }
+
+    /* Badges */
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+    }
+    .badge-green {
+        @apply badge bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300;
+    }
+    .badge-red {
+        @apply badge bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300;
+    }
+    .badge-amber {
+        @apply badge bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300;
+    }
+    .badge-gray {
+        @apply badge bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300;
+    }
+    .badge-brand {
+        @apply badge bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300;
+    }
+
+    /* Responsive tables: real table ≥sm, stacked cards on phones */
+    .table-cards {
+        @apply w-full text-sm;
+    }
+    .table-cards thead {
+        @apply hidden sm:table-header-group text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400;
+    }
+    .table-cards thead th {
+        @apply px-4 py-3 font-semibold;
+    }
+    .table-cards tbody tr {
+        @apply block sm:table-row mb-3 sm:mb-0 rounded-xl sm:rounded-none ring-1 sm:ring-0 ring-slate-200 dark:ring-slate-800
+            bg-white dark:bg-slate-900 sm:bg-transparent dark:sm:bg-transparent sm:border-t sm:border-slate-100 dark:sm:border-slate-800;
+    }
+    .table-cards tbody td {
+        @apply flex items-center justify-between gap-3 px-4 py-2.5 sm:table-cell sm:py-3 text-slate-700 dark:text-slate-300;
+    }
+    .table-cards tbody td[data-label]::before {
+        content: attr(data-label);
+        @apply sm:hidden text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500;
+    }
+
+    /* Sidebar / bottom-nav items */
+    .nav-item {
+        @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium min-h-touch
+            text-slate-600 hover:bg-slate-100 hover:text-slate-900
+            dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors;
+    }
+    .nav-item-active {
+        @apply bg-brand-50 text-brand-700 hover:bg-brand-100 hover:text-brand-800
+            dark:bg-brand-950 dark:text-brand-300 dark:hover:bg-brand-900;
+    }
+    .bottomnav-item {
+        @apply flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-[11px] font-medium min-h-touch
+            text-slate-500 dark:text-slate-400;
+    }
+    .bottomnav-active {
+        @apply text-brand-600 dark:text-brand-400;
+    }
+
+    /* Skeleton loaders */
+    .skeleton {
+        @apply animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800;
+    }
+
+    .prose-content {
+        @apply max-w-none text-slate-700 dark:text-slate-300 leading-relaxed
+            [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-slate-900 dark:[&_h2]:text-white
+            [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2
+            [&_p]:my-3 [&_a]:text-brand-600 [&_a]:underline
+            [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1;
+    }
+}
