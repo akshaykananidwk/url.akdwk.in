@@ -193,7 +193,7 @@ class LinkService
             'links', 'spaces', 'domains', 'pixels', 'stats', 'qr', 'bio', 'api', 'billing', 'account',
             'team', 'tools', 'pricing', 'blog', 'page', 'contact', 'terms', 'privacy', 'about',
             'assets', 'build', 'storage', 'vendor', 'img', 'css', 'js', 'favicon.ico', 'robots.txt',
-            'sitemap.xml', 'manifest.json', 'sw.js', 'offline', 'up', 'report', 'invite', 'checkout',
+            'sitemap.xml', 'manifest.json', 'sw.js', 'offline', 'up', 'report', 'invite', 'checkout', 'admin.html',
             'webhooks', 'verify-email', 'two-factor', 'file', 'files', 'lang', 'go', 'app',
         ];
         if (in_array(strtolower($alias), $reserved, true)) {
