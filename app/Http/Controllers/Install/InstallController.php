@@ -243,17 +243,16 @@ class InstallController extends Controller
             'currency' => 'required|string|size:3',
         ]);
 
-        $user = User::updateOrCreate(
-            ['email' => $data['email']],
-            [
-                'name' => $data['name'],
-                'password' => $data['password'],
-                'role' => 'admin',
-                'email_verified_at' => now(),
-                'locale' => $data['default_language'],
-                'timezone' => $data['timezone'],
-            ]
-        );
+        $user = User::firstOrNew(['email' => $data['email']]);
+        $user->forceFill([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => 'admin',
+            'email_verified_at' => now(),
+            'locale' => $data['default_language'],
+            'timezone' => $data['timezone'],
+        ])->save();
 
         EnvWriter::write(['APP_NAME' => $data['site_name'], 'APP_URL' => rtrim($data['site_url'], '/')]);
 

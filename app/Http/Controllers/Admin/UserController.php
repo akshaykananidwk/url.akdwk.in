@@ -83,7 +83,9 @@ class UserController extends Controller
         }
         $data['permissions'] = ($data['role'] ?? $user->role) === 'staff' ? array_keys($data['permissions'] ?? []) : null;
 
-        $user->update($data);
+        // role/permissions are intentionally not mass-assignable — set explicitly.
+        $user->forceFill(array_intersect_key($data, array_flip(['role', 'permissions'])));
+        $user->fill(array_diff_key($data, array_flip(['role', 'permissions'])))->save();
         AuditLog::record('user.updated', $user, ['fields' => array_keys($data)]);
 
         return back()->with('status', __('User updated.'));

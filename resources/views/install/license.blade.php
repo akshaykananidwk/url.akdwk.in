@@ -1,3 +1,4 @@
+@php($errors = $errors ?? new \Illuminate\Support\ViewErrorBag)
 @extends('install.layout')
 
 @php($step = 2)

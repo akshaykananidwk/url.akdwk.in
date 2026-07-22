@@ -76,39 +76,44 @@ class RecordClick implements ShouldQueue
             $refererHost = parse_url($this->refererUrl, PHP_URL_HOST) ?: null;
         }
 
-        $click = Click::create([
-            'link_id' => $this->linkId,
-            'user_id' => $this->userId,
-            'ip_hash' => $ipHash,
-            'country' => $geo['country'] ?? null,
-            'region' => isset($geo['region']) ? mb_substr($geo['region'], 0, 100) : null,
-            'city' => isset($geo['city']) ? mb_substr($geo['city'], 0, 100) : null,
-            'language' => $this->acceptLanguage ? substr($this->acceptLanguage, 0, 2) : null,
-            'os' => $ua['os'],
-            'browser' => $ua['browser'],
-            'device' => $ua['device'],
-            'referer_host' => $refererHost ? mb_substr($refererHost, 0, 190) : null,
-            'referer_url' => $this->refererUrl ? mb_substr($this->refererUrl, 0, 1000) : null,
-            'isp' => isset($geo['isp']) ? mb_substr($geo['isp'], 0, 190) : null,
-            'is_unique' => $isUnique,
-            'is_qr' => $this->isQr,
-            'created_at' => $this->occurredAt,
-        ]);
+        // Click row, denormalized counters and the daily rollup are written in
+        // ONE transaction so a retried job can never double-count.
+        $click = DB::transaction(function () use ($link, $ipHash, $geo, $ua, $refererHost, $isUnique) {
+            $click = Click::create([
+                'link_id' => $this->linkId,
+                'user_id' => $this->userId,
+                'ip_hash' => $ipHash,
+                'country' => $geo['country'] ?? null,
+                'region' => isset($geo['region']) ? mb_substr($geo['region'], 0, 100) : null,
+                'city' => isset($geo['city']) ? mb_substr($geo['city'], 0, 100) : null,
+                'language' => $this->acceptLanguage ? substr($this->acceptLanguage, 0, 2) : null,
+                'os' => $ua['os'],
+                'browser' => $ua['browser'],
+                'device' => $ua['device'],
+                'referer_host' => $refererHost ? mb_substr($refererHost, 0, 190) : null,
+                'referer_url' => $this->refererUrl ? mb_substr($this->refererUrl, 0, 1000) : null,
+                'isp' => isset($geo['isp']) ? mb_substr($geo['isp'], 0, 190) : null,
+                'is_unique' => $isUnique,
+                'is_qr' => $this->isQr,
+                'created_at' => $this->occurredAt,
+            ]);
 
-        // Denormalized counters on the link row.
-        $update = [
-            'clicks_count' => DB::raw('clicks_count + 1'),
-            'last_click_at' => $this->occurredAt,
-        ];
-        if ($isUnique) {
-            $update['unique_clicks_count'] = DB::raw('unique_clicks_count + 1');
-        }
-        if ($this->isQr) {
-            $update['qr_scans_count'] = DB::raw('qr_scans_count + 1');
-        }
-        Link::withoutEvents(fn () => Link::where('id', $this->linkId)->update($update));
+            $update = [
+                'clicks_count' => DB::raw('clicks_count + 1'),
+                'last_click_at' => $this->occurredAt,
+            ];
+            if ($isUnique) {
+                $update['unique_clicks_count'] = DB::raw('unique_clicks_count + 1');
+            }
+            if ($this->isQr) {
+                $update['qr_scans_count'] = DB::raw('qr_scans_count + 1');
+            }
+            Link::withoutEvents(fn () => Link::where('id', $this->linkId)->update($update));
 
-        $this->applyToRollup($link, $click);
+            $this->applyToRollup($link, $click);
+
+            return $click;
+        }, 3);
 
         hook_action('click_recorded', $click, $link);
 
@@ -127,35 +132,41 @@ class RecordClick implements ShouldQueue
         ]);
     }
 
-    /** Incrementally maintain the daily rollup row (atomic upsert + JSON merge). */
+    /** Incrementally maintain the daily rollup row (runs inside the click transaction). */
     protected function applyToRollup(Link $link, Click $click): void
     {
         $date = $click->created_at->toDateString();
 
-        DB::transaction(function () use ($link, $click, $date) {
-            $rollup = ClickRollup::lockForUpdate()->firstOrCreate(
-                ['link_id' => $link->id, 'date' => $date],
-                ['user_id' => $link->user_id, 'clicks' => 0, 'uniques' => 0, 'qr_scans' => 0, 'breakdown' => []]
-            );
-
-            $b = $rollup->breakdown ?? [];
-            foreach ([
-                'country' => $click->country, 'os' => $click->os, 'browser' => $click->browser,
-                'device' => $click->device, 'referer' => $click->referer_host ?: 'direct',
-                'language' => $click->language, 'city' => $click->city, 'region' => $click->region,
-                'isp' => $click->isp, 'hour' => (string) $click->created_at->format('G'),
-            ] as $dim => $key) {
-                if ($key === null || $key === '') {
-                    continue;
-                }
-                $b[$dim][$key] = ($b[$dim][$key] ?? 0) + 1;
+        $rollup = ClickRollup::where('link_id', $link->id)->where('date', $date)->lockForUpdate()->first();
+        if (! $rollup) {
+            try {
+                $rollup = ClickRollup::create([
+                    'link_id' => $link->id, 'date' => $date, 'user_id' => $link->user_id,
+                    'clicks' => 0, 'uniques' => 0, 'qr_scans' => 0, 'breakdown' => [],
+                ]);
+            } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+                // concurrent worker created it first
+                $rollup = ClickRollup::where('link_id', $link->id)->where('date', $date)->lockForUpdate()->firstOrFail();
             }
+        }
 
-            $rollup->breakdown = $b;
-            $rollup->clicks += 1;
-            $rollup->uniques += $click->is_unique ? 1 : 0;
-            $rollup->qr_scans += $click->is_qr ? 1 : 0;
-            $rollup->save();
-        }, 3);
+        $b = $rollup->breakdown ?? [];
+        foreach ([
+            'country' => $click->country, 'os' => $click->os, 'browser' => $click->browser,
+            'device' => $click->device, 'referer' => $click->referer_host ?: 'direct',
+            'language' => $click->language, 'city' => $click->city, 'region' => $click->region,
+            'isp' => $click->isp, 'hour' => (string) $click->created_at->format('G'),
+        ] as $dim => $key) {
+            if ($key === null || $key === '') {
+                continue;
+            }
+            $b[$dim][$key] = ($b[$dim][$key] ?? 0) + 1;
+        }
+
+        $rollup->breakdown = $b;
+        $rollup->clicks += 1;
+        $rollup->uniques += $click->is_unique ? 1 : 0;
+        $rollup->qr_scans += $click->is_qr ? 1 : 0;
+        $rollup->save();
     }
 }

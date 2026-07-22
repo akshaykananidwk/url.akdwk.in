@@ -236,7 +236,8 @@
             <h2 class="text-2xl sm:text-4xl font-bold tracking-tight">{{ __('Simple, honest pricing') }}</h2>
             <p class="mt-3 text-slate-500 dark:text-slate-400">{{ __('Start free, upgrade when you grow. No hidden fees.') }}</p>
         </div>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-{{ min(4, max(1, $plans->count())) }} gap-5 max-w-5xl mx-auto">
+        @php($planGridCols = [1 => 'lg:grid-cols-1 max-w-sm', 2 => 'lg:grid-cols-2 max-w-3xl', 3 => 'lg:grid-cols-3 max-w-5xl', 4 => 'lg:grid-cols-4 max-w-7xl'][min(4, max(1, $plans->count()))])
+        <div class="grid sm:grid-cols-2 {{ $planGridCols }} gap-5 mx-auto">
             @foreach($plans as $plan)
                 <div class="card card-pad flex flex-col relative {{ $plan->is_featured ? 'ring-2 !ring-brand-500' : '' }}">
                     @if($plan->is_featured)

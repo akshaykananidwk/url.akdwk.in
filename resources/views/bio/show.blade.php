@@ -191,12 +191,8 @@
 
                     @case('video')
                         @if(!empty($c['url']))
-                            @php
-                                $embed = str_replace('watch?v=', 'embed/', $c['url']);
-                                if (str_contains($embed, 'youtu.be/')) {
-                                    $embed = 'https://www.youtube.com/embed/' . ltrim((string) parse_url($embed, PHP_URL_PATH), '/');
-                                }
-                            @endphp
+                            @php($embed = str_replace('watch?v=', 'embed/', $c['url']))
+                            @php($embed = str_contains($embed, 'youtu.be/') ? 'https://www.youtube.com/embed/' . ltrim((string) parse_url($embed, PHP_URL_PATH), '/') : $embed)
                             <div class="video-wrap">
                                 <iframe src="{{ $embed }}" title="{{ $c['title'] ?? __('Video') }}" loading="lazy"
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
