@@ -312,6 +312,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/addons/{slug}/toggle', [Admin\AddonController::class, 'toggle'])->name('addons.toggle');
     Route::get('/backup/download', [Admin\BackupController::class, 'download'])->name('backup.download');
 
+    // GitHub update panel (edit + push site files from the browser)
+    Route::get('/updates', [Admin\UpdatePanelController::class, 'index'])->name('updates');
+
     // Settings
     Route::post('/settings/test-email', [Admin\SettingsController::class, 'sendTestEmail'])->name('settings.test-email');
     Route::post('/settings/branding', [Admin\SettingsController::class, 'uploadBranding'])->name('settings.branding');
