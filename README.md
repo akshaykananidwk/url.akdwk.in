@@ -108,7 +108,7 @@ resources/views/       Blade UI (user, admin, landing, install, bio, mail)
 
 ## Security
 
-CSRF protection, hashed passwords (bcrypt), encrypted secrets at rest, signed verification URLs, login/API/shorten rate limiting, open-redirect prevention, blocked domain/word lists, Google Safe Browsing integration, honeypot + captcha, 2FA (TOTP + recovery codes), audit trail. Redirects are cached and clicks recorded via queue — the hot path does no synchronous writes.
+CSRF protection, hashed passwords (bcrypt), encrypted secrets at rest, signed verification URLs, login/API/shorten rate limiting, open-redirect prevention, blocked domain/word lists, Google Safe Browsing integration, honeypot + captcha, 2FA (TOTP + recovery codes), audit trail. Redirects are cached and clicks are recorded right after the response is flushed, so the redirect itself stays fast.
 
 ## License
 

@@ -183,6 +183,6 @@ Open **Admin → Settings**:
 | 500 after upload | check `storage/` permissions; `php artisan config:clear` |
 | `/install` shows 404 | the app is already installed (`storage/installed.lock` exists) |
 | Emails not sending | Admin → Settings → Email → *Send test email* shows the exact SMTP error |
-| Clicks not appearing | queue worker not running — see step 6; check Admin → Settings → Advanced |
+| Clicks not appearing | works with no worker by default (`QUEUE_CONNECTION=sync`); if you switched to the `database`/`redis` queue, make sure a worker is running (step 6) |
 | Cron "unhealthy" badge | the crontab entry from step 5 is missing |
 | Custom domain won't verify | DNS not propagated yet, or the domain doesn't point at this server; the alternative HTTP check needs `/.well-known/shortl-verify` to serve the token shown on the Domains page |
