@@ -3,6 +3,7 @@
 @php
     $editing = $link !== null;
     $expiresValue = old('expires_at', $link?->expires_at?->format('Y-m-d\TH:i'));
+    $dayNamesJson = json_encode([__('Sun'), __('Mon'), __('Tue'), __('Wed'), __('Thu'), __('Fri'), __('Sat')]);
 @endphp
 
 @section('title', ($editing ? __('Edit link') : __('Create link')) . ' — ' . site_name())
@@ -317,7 +318,7 @@
 
 @push('scripts')
 <script>
-    window.dayNames = @json([__('Sun'), __('Mon'), __('Tue'), __('Wed'), __('Thu'), __('Fri'), __('Sat')]);
+    window.dayNames = {!! $dayNamesJson !!};
     // Generic add/remove row repeater used by the targeting sections.
     window.repeater = (rows, blank) => ({
         rows: Array.isArray(rows) ? rows : Object.values(rows || {}),
