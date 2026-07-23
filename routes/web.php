@@ -11,6 +11,7 @@ use App\Http\Controllers\Install\InstallController;
 use App\Http\Controllers\Install\UpdateController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\Site;
 use App\Http\Controllers\User;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,7 @@ Route::get('/', [RedirectController::class, 'domainIndex'])->name('home');
 Route::post('/shorten', [LandingController::class, 'guestShorten'])->middleware('throttle:shorten-guest')->name('guest.shorten');
 Route::get('/pricing', [LandingController::class, 'pricing'])->name('pricing');
 Route::get('/blog', [LandingController::class, 'blog'])->name('blog');
+Route::get('/blog/feed', [LandingController::class, 'blogFeed'])->name('blog.feed');
 Route::get('/blog/{slug}', [LandingController::class, 'blogPost'])->name('blog.post');
 Route::get('/page/{slug}', [LandingController::class, 'page'])->name('page');
 Route::get('/contact', [LandingController::class, 'contact'])->name('contact');
@@ -65,6 +67,47 @@ Route::get('/robots.txt', [LandingController::class, 'robots']);
 Route::get('/sitemap.xml', [LandingController::class, 'sitemap']);
 Route::get('/manifest.json', [LandingController::class, 'manifest'])->name('manifest');
 Route::view('/offline', 'landing.offline')->name('offline');
+
+/*
+|--------------------------------------------------------------------------
+| Growth & traffic — public pages (batch #6)
+|--------------------------------------------------------------------------
+| Registered before the /{alias} redirect catch-all so their static paths win.
+*/
+
+// SEO — public link preview, bio directory, dynamic OG images, feeds
+Route::get('/preview/{alias}', [Site\PreviewController::class, 'show'])->where('alias', '[a-zA-Z0-9\-_]+')->name('preview.show');
+Route::get('/directory', [Site\DirectoryController::class, 'index'])->name('directory.index');
+Route::get('/directory/feed', [Site\DirectoryController::class, 'feed'])->name('directory.feed');
+Route::get('/og/link/{alias}.svg', [Site\OgImageController::class, 'link'])->where('alias', '[a-zA-Z0-9\-_]+')->name('og.link');
+Route::get('/og/bio/{username}.svg', [Site\OgImageController::class, 'bio'])->name('og.bio');
+
+// Free public tools (no login) — each ranks on its own SEO landing page
+Route::prefix('free-tools')->name('ftools.')->group(function () {
+    Route::get('/', [Site\ToolController::class, 'hub'])->name('hub');
+    Route::get('/qr-code', [Site\ToolController::class, 'qr'])->name('qr');
+    Route::get('/utm-builder', [Site\ToolController::class, 'utm'])->name('utm');
+    Route::get('/bulk-shortener', [Site\ToolController::class, 'bulk'])->name('bulk');
+    Route::post('/bulk-shortener', [Site\ToolController::class, 'bulkStore'])->middleware('throttle:10,1')->name('bulk.store');
+    Route::get('/qr-scanner', [Site\ToolController::class, 'scanner'])->name('scanner');
+    Route::get('/password-generator', [Site\ToolController::class, 'password'])->name('password');
+    Route::get('/link-expander', [Site\ToolController::class, 'expander'])->name('expander');
+    Route::post('/link-expander', [Site\ToolController::class, 'expanderCheck'])->middleware('throttle:20,1')->name('expander.check');
+    Route::get('/og-preview', [Site\ToolController::class, 'ogPreview'])->name('og');
+    Route::post('/og-preview', [Site\ToolController::class, 'ogPreviewFetch'])->middleware('throttle:20,1')->name('og.check');
+    Route::get('/business-card', [Site\ToolController::class, 'vcard'])->name('vcard');
+});
+// Programmatic SEO — "Shorten {service} links" landing pages
+Route::get('/shorten/{service}', [Site\ToolController::class, 'programmatic'])->where('service', '[a-z0-9\-]+')->name('ftools.programmatic');
+
+// Viral — leaderboard, embeddable widgets, waitlist capture
+Route::get('/leaderboard', [Site\LeaderboardController::class, 'index'])->name('leaderboard.index');
+Route::get('/widget/{alias}.js', [Site\WidgetController::class, 'js'])->where('alias', '[a-zA-Z0-9\-_]+')->name('widget.js');
+Route::get('/embed/{alias}', [Site\WidgetController::class, 'embed'])->where('alias', '[a-zA-Z0-9\-_]+')->name('widget.embed');
+Route::post('/waitlist', [Site\WaitlistController::class, 'store'])->middleware('throttle:10,1')->name('waitlist.store');
+
+// Public status / uptime page
+Route::get('/status', [Site\StatusController::class, 'index'])->name('status.index');
 
 /*
 |--------------------------------------------------------------------------
@@ -372,6 +415,32 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('/settings/payments', [Admin\SettingsController::class, 'updatePayments'])->name('settings.payments');
     Route::put('/settings/{tab}', [Admin\SettingsController::class, 'update'])->name('settings.update');
     Route::get('/settings/{tab?}', [Admin\SettingsController::class, 'index'])->name('settings');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Growth & traffic — authenticated (batch #6)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'not.suspended'])->group(function () {
+    // Gamification
+    Route::get('/badges', [User\BadgeController::class, 'index'])->name('badges.index');
+    // Web-push (VAPID) browser notifications
+    Route::get('/me/push/key', [User\PushController::class, 'vapidKey'])->name('push.key');
+    Route::post('/me/push/subscribe', [User\PushController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/me/push/unsubscribe', [User\PushController::class, 'unsubscribe'])->name('push.unsubscribe');
+    // AI helpers (bio/title generation)
+    Route::post('/me/ai/bio', [User\AiController::class, 'bio'])->middleware('throttle:20,1')->name('ai.bio');
+    Route::post('/me/ai/title', [User\AiController::class, 'title'])->middleware('throttle:20,1')->name('ai.title');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Growth — admin (batch #6)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/waitlist', [Admin\WaitlistController::class, 'index'])->name('waitlist');
 });
 
 /*

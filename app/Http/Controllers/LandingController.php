@@ -145,15 +145,48 @@ class LandingController extends Controller
 
     public function sitemap()
     {
-        $urls = collect([url('/'), route('pricing'), route('blog')])
+        // Static, high-value landing surfaces (batch #6 growth pages).
+        $programmaticServices = ['youtube', 'amazon', 'instagram', 'tiktok', 'facebook', 'twitter', 'linkedin', 'whatsapp', 'spotify', 'github'];
+        $freeTools = ['', 'qr-code', 'utm-builder', 'bulk-shortener', 'qr-scanner', 'password-generator', 'link-expander', 'og-preview', 'business-card'];
+
+        $urls = collect([url('/'), route('pricing'), route('blog'), route('directory.index'), route('leaderboard.index'), route('status.index')])
+            ->merge(collect($freeTools)->map(fn ($t) => rtrim(url('/free-tools/' . $t), '/')))
+            ->merge(collect($programmaticServices)->map(fn ($s) => url('/shorten/' . $s)))
             ->merge(Page::where('active', true)->pluck('slug')->map(fn ($s) => url('/page/' . $s)))
-            ->merge(Post::where('published', true)->pluck('slug')->map(fn ($s) => url('/blog/' . $s)));
+            ->merge(Post::where('published', true)->pluck('slug')->map(fn ($s) => url('/blog/' . $s)))
+            // Public creator bio pages — a large, growing set of indexable URLs.
+            ->merge(\App\Models\BioPage::where('active', true)->orderByDesc('views')->limit(5000)->pluck('username')->map(fn ($u) => url('/@' . $u)))
+            ->unique()->values();
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
             . $urls->map(fn ($u) => '<url><loc>' . e($u) . '</loc></url>')->implode('')
             . '</urlset>';
 
         return response($xml, 200, ['Content-Type' => 'application/xml']);
+    }
+
+    /** RSS 2.0 feed of the latest published blog posts. */
+    public function blogFeed()
+    {
+        $posts = Post::where('published', true)->orderByDesc('published_at')->limit(30)->get();
+        $items = $posts->map(function ($post) {
+            $link = url('/blog/' . $post->slug);
+            $date = optional($post->published_at)->toRfc2822String();
+            $desc = htmlspecialchars((string) ($post->excerpt ?: strip_tags((string) $post->content)), ENT_XML1);
+
+            return "<item><title>" . htmlspecialchars((string) $post->title, ENT_XML1) . "</title>"
+                . "<link>{$link}</link><guid>{$link}</guid>"
+                . ($date ? "<pubDate>{$date}</pubDate>" : '')
+                . "<description>{$desc}</description></item>";
+        })->implode('');
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel>'
+            . '<title>' . htmlspecialchars(site_name() . ' — Blog', ENT_XML1) . '</title>'
+            . '<link>' . e(route('blog')) . '</link>'
+            . '<description>' . htmlspecialchars((string) setting('tagline', ''), ENT_XML1) . '</description>'
+            . $items . '</channel></rss>';
+
+        return response($xml, 200, ['Content-Type' => 'application/rss+xml; charset=UTF-8']);
     }
 
     public function manifest()

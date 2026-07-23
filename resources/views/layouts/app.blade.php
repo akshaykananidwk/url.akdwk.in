@@ -16,6 +16,7 @@
         ['route' => 'developers.index', 'icon' => 'code', 'label' => __('Developers'), 'match' => 'developers*'],
         ['route' => 'tips.index', 'icon' => 'gift', 'label' => __('Tips'), 'match' => 'tips*'],
         ['route' => 'credits.index', 'icon' => 'sparkles', 'label' => __('Credits'), 'match' => 'credits*'],
+        ['route' => 'badges.index', 'icon' => 'shield', 'label' => __('Badges'), 'match' => 'badges*'],
         ['route' => 'activity.index', 'icon' => 'clock', 'label' => __('Activity'), 'match' => 'activity*'],
         ['route' => 'affiliate.index', 'icon' => 'gift', 'label' => __('Affiliate'), 'match' => 'affiliate*'],
         ['route' => 'billing.plans', 'icon' => 'card', 'label' => __('Billing'), 'match' => 'billing*'],

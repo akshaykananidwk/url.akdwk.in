@@ -55,6 +55,28 @@ class AiService
         return max(0, min(100, (int) preg_replace('/\D/', '', (string) $out)));
     }
 
+    /** Draft a short bio/about blurb from a few words about the user. */
+    public function bio(string $about): string
+    {
+        if (! $this->enabled()) {
+            return '';
+        }
+        $prompt = "Write a friendly, professional bio of at most 2 short sentences (under 220 characters) for a personal link-in-bio page, based on these notes. Reply with ONLY the bio text, no quotes or preamble.\nNotes: {$about}";
+
+        return (string) ($this->complete($prompt, 160) ?? '');
+    }
+
+    /** Suggest a concise, click-worthy title for a URL. */
+    public function title(string $url, ?string $context = null): string
+    {
+        if (! $this->enabled()) {
+            return '';
+        }
+        $prompt = "Suggest ONE concise, click-worthy title (max 60 characters) for the link below. Reply with ONLY the title, no quotes or preamble.\nURL: {$url}\nContext: " . ($context ?: 'n/a');
+
+        return (string) ($this->complete($prompt, 40) ?? '');
+    }
+
     /** Low-level completion call. Returns null on any failure (caller falls back). */
     protected function complete(string $prompt, int $maxTokens = 64): ?string
     {

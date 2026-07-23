@@ -43,3 +43,31 @@ self.addEventListener('fetch', (event) => {
         );
     }
 });
+
+// Web push: show a notification when the server pushes (payloadless by default).
+self.addEventListener('push', (event) => {
+    const body = event.data ? event.data.text() : '';
+    event.waitUntil(
+        self.registration.showNotification('Notification', {
+            body: body || 'You have a new update',
+            tag: 'app-notification',
+        })
+    );
+});
+
+// Focus an existing tab (or open one) when a notification is clicked.
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const target = self.location.origin + '/';
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+            for (const client of clients) {
+                if ('focus' in client) {
+                    client.navigate(target);
+                    return client.focus();
+                }
+            }
+            if (self.clients.openWindow) return self.clients.openWindow(target);
+        })
+    );
+});

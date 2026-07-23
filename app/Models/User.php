@@ -18,6 +18,7 @@ class User extends Authenticatable
         'name', 'email', 'password', 'avatar', 'locale', 'timezone', 'theme',
         'plan_id', 'plan_cycle', 'plan_expires_at', 'trial_ends_at',
         'referral_code', 'referred_by', 'default_domain', 'notification_prefs', 'branding',
+        'streak_days', 'last_active_on', 'last_digest_at',
     ];
 
     protected $hidden = ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'];
@@ -36,6 +37,8 @@ class User extends Authenticatable
             'notification_prefs' => 'array',
             'affiliate_balance' => 'decimal:2',
             'branding' => 'array',
+            'last_active_on' => 'date',
+            'last_digest_at' => 'datetime',
         ];
     }
 
@@ -131,6 +134,16 @@ class User extends Authenticatable
     public function creditTransactions(): HasMany
     {
         return $this->hasMany(CreditTransaction::class);
+    }
+
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    public function badges(): HasMany
+    {
+        return $this->hasMany(UserBadge::class);
     }
 
     /** Add (positive) or spend (negative) credits atomically, with a ledger row. */

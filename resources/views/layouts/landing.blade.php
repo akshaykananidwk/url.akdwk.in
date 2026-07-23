@@ -17,6 +17,8 @@
             <nav class="hidden md:flex items-center gap-1 ms-6" aria-label="{{ __('Primary') }}">
                 <a href="{{ url('/#features') }}" class="nav-item">{{ __('Features') }}</a>
                 <a href="{{ route('pricing') }}" class="nav-item">{{ __('Pricing') }}</a>
+                <a href="{{ route('ftools.hub') }}" class="nav-item">{{ __('Free tools') }}</a>
+                <a href="{{ route('directory.index') }}" class="nav-item">{{ __('Directory') }}</a>
                 <a href="{{ route('blog') }}" class="nav-item">{{ __('Blog') }}</a>
                 <a href="{{ route('contact') }}" class="nav-item">{{ __('Contact') }}</a>
             </nav>
@@ -70,6 +72,9 @@
                 <ul class="space-y-2 text-slate-500 dark:text-slate-400">
                     <li><a class="hover:text-brand-600" href="{{ url('/#features') }}">{{ __('Features') }}</a></li>
                     <li><a class="hover:text-brand-600" href="{{ route('pricing') }}">{{ __('Pricing') }}</a></li>
+                    <li><a class="hover:text-brand-600" href="{{ route('ftools.hub') }}">{{ __('Free tools') }}</a></li>
+                    <li><a class="hover:text-brand-600" href="{{ route('directory.index') }}">{{ __('Directory') }}</a></li>
+                    <li><a class="hover:text-brand-600" href="{{ route('leaderboard.index') }}">{{ __('Leaderboard') }}</a></li>
                     <li><a class="hover:text-brand-600" href="{{ route('register') }}">{{ __('Sign up') }}</a></li>
                     <li><a class="hover:text-brand-600" href="{{ route('blog') }}">{{ __('Blog') }}</a></li>
                 </ul>

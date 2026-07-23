@@ -6,8 +6,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', site_name())</title>
-    <meta name="description" content="@yield('meta_description', setting('meta_description', setting('tagline', 'Short links, QR codes & analytics')))">
+    {{-- Unified SEO head (title, description, canonical, Open Graph, Twitter, JSON-LD).
+         Existing pages drive it via @section('title')/@section('meta_description');
+         growth pages pass $seoTitle/$seoImage/$seoJsonLd from their controllers. --}}
+    @include('partials.seo-meta', [
+        'seoTitle' => trim($__env->yieldContent('title')) ?: ($seoTitle ?? null),
+        'seoDescription' => trim($__env->yieldContent('meta_description')) ?: ($seoDescription ?? setting('meta_description', setting('tagline', 'Short links, QR codes & analytics'))),
+        'seoCanonical' => $seoCanonical ?? null,
+        'seoImage' => $seoImage ?? null,
+        'seoType' => $seoType ?? null,
+        'seoNoindex' => $seoNoindex ?? false,
+        'seoJsonLd' => $seoJsonLd ?? null,
+    ])
     @stack('meta')
     <link rel="manifest" href="{{ route('manifest') }}">
     <meta name="theme-color" content="#6366f1">

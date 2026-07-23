@@ -23,6 +23,7 @@
         ['route' => 'admin.audit.index', 'icon' => 'eye', 'label' => __('Audit log'), 'match' => 'admin.audit.*'],
         ['route' => 'admin.addons.index', 'icon' => 'bolt', 'label' => __('Addons'), 'match' => 'admin.addons.*'],
         ['route' => 'admin.sso.index', 'icon' => 'lock', 'label' => __('SSO'), 'match' => 'admin.sso.*'],
+        ['route' => 'admin.waitlist', 'icon' => 'mail', 'label' => __('Waitlist'), 'match' => 'admin.waitlist*'],
         ['route' => 'admin.updates', 'icon' => 'refresh', 'label' => __('Update'), 'match' => 'admin.updates*'],
         ['route' => 'admin.settings', 'icon' => 'settings', 'label' => __('Settings'), 'match' => 'admin.settings*'],
     ];

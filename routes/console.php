@@ -28,3 +28,6 @@ Schedule::command('app:check-link-health')->dailyAt('04:00');
 
 // Weekly click report digest to opted-in users (Mondays 8am).
 Schedule::command('app:send-click-reports --days=7')->weeklyOn(1, '08:00');
+
+// Weekly recap email (batch #6) — per-user 7-day recap, opt-out honoured.
+Schedule::command('digests:send')->weeklyOn(1, '08:30');

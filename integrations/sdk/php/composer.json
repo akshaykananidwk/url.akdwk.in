@@ -1,0 +1,16 @@
+{
+    "name": "yoursite/shortl-sdk",
+    "description": "Minimal, dependency-free PHP client for the URL shortener REST API (v1).",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "ShortlSdk\\": "src/"
+        }
+    }
+}

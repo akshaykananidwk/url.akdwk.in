@@ -2,6 +2,38 @@
 
 All notable changes to this project are documented here.
 
+## [1.6.0] — 2026-07-23
+
+### Added — Feature batch #6 (growth & traffic engine)
+A large batch focused on driving organic traffic, virality and retention.
+
+**SEO**
+- **Public link preview pages** (`/preview/{code}`) — indexable, shareable safety/preview page for every short link, with schema.org data.
+- **Public creator directory** (`/directory`) — searchable, paginated gallery of active bio pages (plus an RSS feed at `/directory/feed`).
+- **Dynamic Open Graph images** — auto-generated 1200×630 social share cards for links (`/og/link/…`) and bios (`/og/bio/…`).
+- **Unified SEO head** — a single `seo-meta` partial now drives `<title>`, description, canonical, Open Graph, Twitter cards and JSON-LD across the whole app.
+- **Expanded sitemap** now lists the directory, every free tool, the programmatic pages, the leaderboard and up to 5,000 public bio pages; **blog RSS feed** at `/blog/feed`.
+
+**Free public tools (no login — each its own SEO landing page)**
+- QR code generator, UTM campaign builder, bulk shortener, QR scanner, password generator, link expander/unshortener, Open-Graph preview checker, and a digital business-card (vCard) generator, all under `/free-tools`.
+- **Programmatic SEO pages** — “Shorten {YouTube/Amazon/Instagram/…} links” landing pages at `/shorten/{service}`.
+
+**Viral / growth**
+- **Public leaderboard** (`/leaderboard`) — top links and creators, opt-in via public stats.
+- **Embeddable widgets** — a JS embed (`/widget/{code}.js`) and an iframe card (`/embed/{code}`) so other sites showcase your links (backlinks).
+- **Share buttons** partial (WhatsApp-first) and a **“Powered by” badge** shown on free public pages (hidden for white-label plans).
+- **Feature waitlist** capture with an admin review screen.
+
+**Retention**
+- **Web-push notifications** (VAPID, payload-less) — browser push opt-in with a service-worker handler.
+- **Gamification** — a badge system (10 badges) and daily login streaks, on a new Badges page.
+- **Weekly recap email** — a per-user 7-day digest (`digests:send`, scheduled Mondays), opt-out honoured.
+- **AI helpers** — AI bio/title generation endpoints wired to the existing AI service.
+
+**Developer adoption**
+- **Official SDKs** — PHP, JavaScript/Node and Python clients in `integrations/sdk/`.
+- **Public status page** (`/status`) with live DB/cache/queue health checks.
+
 ## [1.5.0] — 2026-07-23
 
 ### Added — Feature batch #5 (enterprise)

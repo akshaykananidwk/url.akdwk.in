@@ -1,0 +1,23 @@
+{
+  "name": "@yoursite/shortl-sdk",
+  "version": "1.0.0",
+  "description": "Zero-dependency JS/Node client for the URL shortener REST API (v1).",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "keywords": [
+    "url-shortener",
+    "sdk",
+    "shortl"
+  ],
+  "license": "MIT"
+}

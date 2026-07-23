@@ -31,6 +31,16 @@ class DashboardController extends Controller
         $recentLinks = $user->links()
             ->orderByDesc('created_at')->limit(5)->get();
 
+        // Retention: update the daily streak and award any earned badges.
+        // Never let a gamification hiccup break the dashboard.
+        try {
+            $badges = app(\App\Services\BadgeService::class);
+            $badges->touchStreak($user);
+            $badges->sync($user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return view('user.dashboard', [
             'kpis' => [
                 'links' => $user->links()->count(),
