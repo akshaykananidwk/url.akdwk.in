@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here.
 
+## [1.2.0] — 2026-07-23
+
+### Added — Feature batch #2
+- **Scheduled links** — set an "Activate at" time; the link stays inactive (HTTP 425 page) until then.
+- **Nested folders** — spaces can contain sub-spaces for a folder tree.
+- **QR templates gallery** — one-click ready-made QR colour/style presets.
+- **Conversion tracking** — drop a pixel/JS beacon on your success page; conversions (and optional revenue value) are attributed to the originating link, deduped per visitor, and shown in stats with conversion rate.
+- **Real-time world map** on the statistics page.
+
+## [1.1.0] — 2026-07-23
+
+### Added — Feature batch #1
+- **UTM templates** — save and reuse utm_* parameter sets.
+- **Click alerts** — Slack / Discord / Telegram notifications (instant or every N clicks) with a test button.
+- **Email reports** — weekly stats digest to opted-in users.
+- **Link health checker** — scheduled + per-link check that flags broken destinations.
+- **AI assistant** (bring-your-own key, Anthropic/OpenAI) — alias & tag suggestions plus optional spam/phishing scanning.
+
+### Added — Platform
+- **One-click self-updater** (Admin → Update): pulls the latest release from GitHub and applies it, preserving data/uploads/config.
+- **In-browser GitHub file editor** (Admin → Update → Advanced) and a standalone `public/admin.html`.
+- Trusted-proxy support so settings save correctly behind HTTPS proxies; friendly 419 page.
+- Click recording works with no queue worker by default (records after the response is sent).
+
 ## [1.0.0] — 2026-07-22
 
 Initial release.

@@ -57,6 +57,10 @@ Route::get('/.well-known/shortl-verify', function (\Illuminate\Http\Request $req
     return response($domain?->verification_token ?? '', 200, ['Content-Type' => 'text/plain']);
 });
 
+// Conversion tracking pixel / beacon (dropped on the merchant's success page)
+Route::get('/cv/{alias}.gif', [\App\Http\Controllers\ConversionController::class, 'pixel'])->where('alias', '[a-zA-Z0-9\-_]+')->name('conversion.pixel');
+Route::get('/cv/{alias}.js', [\App\Http\Controllers\ConversionController::class, 'beacon'])->where('alias', '[a-zA-Z0-9\-_]+')->name('conversion.beacon');
+
 Route::get('/robots.txt', [LandingController::class, 'robots']);
 Route::get('/sitemap.xml', [LandingController::class, 'sitemap']);
 Route::get('/manifest.json', [LandingController::class, 'manifest'])->name('manifest');

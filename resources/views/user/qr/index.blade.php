@@ -24,16 +24,33 @@
                     @endforeach
                 </select>
             </x-field>
+            @if(!empty($presets))
+                <x-field name="quick_styles" :label="__('Quick styles')" class="sm:col-span-2 lg:col-span-3">
+                    <div class="flex gap-2 overflow-x-auto pb-1">
+                        @foreach($presets as $preset)
+                            <button type="button"
+                                    onclick="document.getElementById('fg').value=@js($preset['fg']);document.getElementById('bg').value=@js($preset['bg']);document.getElementById('ec_level').value=@js($preset['ec_level']);"
+                                    class="shrink-0 flex flex-col items-center gap-1 rounded-xl p-2 ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-brand-500 min-w-[64px]"
+                                    aria-label="{{ __('Apply :name style', ['name' => $preset['name']]) }}">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-lg" style="background:{{ $preset['bg'] }};color:{{ $preset['fg'] }}">
+                                    <x-icon name="qr" class="h-6 w-6"/>
+                                </span>
+                                <span class="text-[11px] text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ $preset['name'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </x-field>
+            @endif
             <div class="grid grid-cols-2 gap-4">
                 <x-field name="fg" :label="__('Foreground')">
-                    <input type="color" name="fg" value="{{ old('fg', '#000000') }}" class="input !p-1 h-11">
+                    <input type="color" id="fg" name="fg" value="{{ old('fg', '#000000') }}" class="input !p-1 h-11">
                 </x-field>
                 <x-field name="bg" :label="__('Background')">
-                    <input type="color" name="bg" value="{{ old('bg', '#ffffff') }}" class="input !p-1 h-11">
+                    <input type="color" id="bg" name="bg" value="{{ old('bg', '#ffffff') }}" class="input !p-1 h-11">
                 </x-field>
             </div>
             <x-field name="ec_level" :label="__('Error correction')">
-                <select name="ec_level" class="input">
+                <select name="ec_level" id="ec_level" class="input">
                     <option value="low" @selected(old('ec_level') === 'low')>{{ __('Low') }}</option>
                     <option value="medium" @selected(old('ec_level', 'medium') === 'medium')>{{ __('Medium') }}</option>
                     <option value="quartile" @selected(old('ec_level') === 'quartile')>{{ __('Quartile') }}</option>

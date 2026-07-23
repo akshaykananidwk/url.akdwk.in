@@ -17,11 +17,24 @@ class QrCodeController extends Controller
     ) {
     }
 
+    /** Ready-made QR style presets shown as a gallery on the create form. */
+    public const PRESETS = [
+        ['name' => 'Classic', 'fg' => '#000000', 'bg' => '#ffffff', 'ec_level' => 'medium'],
+        ['name' => 'Indigo', 'fg' => '#4f46e5', 'bg' => '#ffffff', 'ec_level' => 'medium'],
+        ['name' => 'Emerald', 'fg' => '#059669', 'bg' => '#ecfdf5', 'ec_level' => 'medium'],
+        ['name' => 'Sunset', 'fg' => '#ea580c', 'bg' => '#fff7ed', 'ec_level' => 'medium'],
+        ['name' => 'Rose', 'fg' => '#e11d48', 'bg' => '#fff1f2', 'ec_level' => 'medium'],
+        ['name' => 'Ocean', 'fg' => '#0369a1', 'bg' => '#f0f9ff', 'ec_level' => 'medium'],
+        ['name' => 'Midnight', 'fg' => '#f8fafc', 'bg' => '#0f172a', 'ec_level' => 'high'],
+        ['name' => 'Grape', 'fg' => '#7c3aed', 'bg' => '#faf5ff', 'ec_level' => 'medium'],
+    ];
+
     public function index(Request $request)
     {
         return view('user.qr.index', [
             'codes' => $request->user()->qrCodes()->with('link.domain')->orderByDesc('created_at')->paginate(12),
             'links' => $request->user()->links()->active()->orderByDesc('created_at')->limit(200)->get(),
+            'presets' => self::PRESETS,
         ]);
     }
 

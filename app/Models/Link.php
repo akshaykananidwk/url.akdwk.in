@@ -18,13 +18,14 @@ class Link extends Model
         'user_id', 'space_id', 'domain_id', 'alias', 'destination', 'title', 'type',
         'password', 'expires_at', 'max_clicks', 'expired_redirect', 'disabled',
         'cloaking', 'deep_link', 'og', 'utm', 'targeting', 'meta', 'notes', 'tags',
-        'public_stats', 'archived_at',
+        'public_stats', 'archived_at', 'starts_at', 'conversion_goal',
     ];
 
     protected function casts(): array
     {
         return [
             'expires_at' => 'datetime',
+            'starts_at' => 'datetime',
             'archived_at' => 'datetime',
             'last_click_at' => 'datetime',
             'disabled' => 'boolean',
@@ -101,6 +102,12 @@ class Link extends Model
             : rtrim(config('app.url'), '/');
 
         return $host . '/' . $this->alias;
+    }
+
+    /** Link set to go live in the future and not yet active. */
+    public function isScheduled(): bool
+    {
+        return $this->starts_at !== null && $this->starts_at->isFuture();
     }
 
     public function isExpired(): bool

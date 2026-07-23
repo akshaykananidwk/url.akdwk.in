@@ -274,6 +274,9 @@
             <div class="card card-pad space-y-4">
                 <h3 class="font-semibold text-sm">{{ __('Expiration') }}</h3>
                 <div class="grid sm:grid-cols-2 gap-4">
+                    <x-field name="starts_at" :label="__('Activate at (schedule)')" :help="__('Link stays inactive until this time. Leave blank to activate immediately.')">
+                        <input type="datetime-local" name="starts_at" value="{{ old('starts_at', $link?->starts_at?->format('Y-m-d\TH:i')) }}" class="input">
+                    </x-field>
                     <x-field name="expires_at" :label="__('Expires at')">
                         <input type="datetime-local" name="expires_at" value="{{ $expiresValue }}" class="input">
                     </x-field>
@@ -305,6 +308,21 @@
                         <input type="text" name="deep_link[android]" value="{{ old('deep_link.android', $link->deep_link['android'] ?? '') }}" class="input" placeholder="myapp://product/1">
                     </x-field>
                 </div>
+            </div>
+
+            <div class="card card-pad space-y-4">
+                <h3 class="font-semibold text-sm">{{ __('Conversion tracking') }}</h3>
+                <x-field name="conversion_goal" :label="__('Conversion goal (optional)')" :help="__('Label for conversions, e.g. Signup or Purchase.')">
+                    <input name="conversion_goal" class="input" value="{{ old('conversion_goal', $link?->conversion_goal) }}" placeholder="{{ __('Signup') }}">
+                </x-field>
+                @if($link)
+                    <div class="rounded-xl bg-slate-900 text-slate-100 text-xs p-3 overflow-x-auto">
+                        <div class="text-slate-400 mb-1">{{ __('Add this to your success/thank-you page to count conversions:') }}</div>
+                        <code id="cvsnippet">&lt;img src="{{ route('conversion.pixel', $link->alias) }}" width="1" height="1" alt=""&gt;</code>
+                    </div>
+                    <button type="button" class="btn-ghost btn-sm mt-2" onclick="copyText(document.getElementById('cvsnippet').innerText)"><x-icon name="copy" class="h-4 w-4"/> {{ __('Copy snippet') }}</button>
+                    <p class="help !mt-2">{{ __('To record revenue, append ?value=9.99 to the pixel URL.') }}</p>
+                @endif
             </div>
         </div>
 

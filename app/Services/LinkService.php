@@ -113,7 +113,7 @@ class LinkService
 
         // Feature-gated blocks are silently stripped when the plan lacks them.
         foreach ([
-            'expiration' => ['expires_at', 'max_clicks', 'expired_redirect'],
+            'expiration' => ['expires_at', 'starts_at', 'max_clicks', 'expired_redirect'],
             'targeting' => ['targeting'],
             'deep_links' => ['deep_link'],
             'cloaking' => ['cloaking'],

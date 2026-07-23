@@ -131,6 +131,7 @@ class StatsController extends Controller
             'previous' => $prev,
             'breakdowns' => $breakdowns,
             'heatmap' => $this->stats->heatmap($link, $userId, $from, $to),
+            'conversions' => $this->stats->conversions($link, $userId, $from, $to),
             'from' => $from,
             'to' => $to,
             'range' => $range,

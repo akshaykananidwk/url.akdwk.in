@@ -13,10 +13,15 @@
     ];
     $heatMax = max(1, max(array_map('max', $heatmap)));
     $dayNames = [__('Sun'), __('Mon'), __('Tue'), __('Wed'), __('Thu'), __('Fri'), __('Sat')];
+    $convRate = $totals['clicks'] > 0 ? round($conversions['count'] / $totals['clicks'] * 100, 1) : 0;
 @endphp
 
 @section('title', ($link ? __('Statistics') . ' — ' . $link->alias : __('Global statistics')) . ' — ' . site_name())
 @section('page-title', $link ? __('Statistics') : __('Global statistics'))
+
+@push('head')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/jsvectormap.min.css">
+@endpush
 
 @section('content')
 <div class="space-y-5">
@@ -63,16 +68,34 @@
     </div>
 
     {{-- KPI row --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <x-stat-card :label="__('Clicks')" :value="format_number($totals['clicks'])" icon="chart" :trend="$pct($totals['clicks'], $previous['clicks'])"/>
         <x-stat-card :label="__('Unique visitors')" :value="format_number($totals['uniques'])" icon="users" :trend="$pct($totals['uniques'], $previous['uniques'])"/>
         <x-stat-card :label="__('QR scans')" :value="format_number($totals['qr_scans'])" icon="qr" :trend="$pct($totals['qr_scans'], $previous['qr_scans'])"/>
+        <div class="card card-pad !p-4 sm:!p-5">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">{{ __('Conversions') }}</span>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400">
+                    <x-icon name="target" class="h-4 w-4"/>
+                </span>
+            </div>
+            <div class="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight">{{ format_number($conversions['count']) }}</div>
+            <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {{ $convRate }}% {{ __('rate') }}@if($conversions['value'] > 0) · {{ format_money($conversions['value']) }} {{ __('value') }}@endif
+            </div>
+        </div>
     </div>
 
     {{-- Series chart --}}
     <div class="card card-pad">
         <h2 class="font-semibold mb-4">{{ __('Clicks over time') }}</h2>
         <div class="h-56 sm:h-72"><canvas id="statsChart"></canvas></div>
+    </div>
+
+    {{-- World map --}}
+    <div class="card card-pad">
+        <h2 class="font-semibold mb-4">{{ __('Clicks by country') }}</h2>
+        <div id="worldmap" class="rounded-xl w-full max-w-full" style="height:320px;overflow:hidden"></div>
     </div>
 
     {{-- Breakdowns --}}
@@ -167,7 +190,36 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/jsvectormap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Real-time world map built from the country breakdown. Fails soft if the CDN is blocked.
+        try {
+            const countryData = @json($breakdowns['country']->mapWithKeys(fn($r) => [strtoupper($r['key']) => $r['count']]));
+            if (typeof jsVectorMap !== 'undefined' && document.getElementById('worldmap')) {
+                new jsVectorMap({
+                    selector: '#worldmap',
+                    map: 'world',
+                    zoomButtons: false,
+                    regionStyle: { initial: { fill: '#cbd5e1' } },
+                    series: {
+                        regions: [{
+                            attribute: 'fill',
+                            values: countryData,
+                            scale: ['#c7d2fe', '#4f46e5'],
+                            normalizeFunction: 'polynomial',
+                        }],
+                    },
+                    onRegionTooltipShow(event, tooltip, code) {
+                        const n = countryData[code] || 0;
+                        tooltip.text(tooltip.text() + ': ' + n + ' ' + @js(__('clicks')), true);
+                    },
+                });
+            }
+        } catch (e) { /* CDN unavailable — the country list below still works */ }
+    });
+
     // Live click feed: polls the JSON endpoint every 5 seconds using an id cursor.
     window.liveFeed = () => ({
         rows: [],

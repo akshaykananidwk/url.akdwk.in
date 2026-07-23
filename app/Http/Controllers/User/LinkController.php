@@ -280,6 +280,8 @@ class LinkController extends Controller
             'space_id' => 'nullable|integer',
             'password' => 'nullable|string|max:190',
             'expires_at' => 'nullable|date',
+            'starts_at' => 'nullable|date',
+            'conversion_goal' => 'nullable|string|max:190',
             'max_clicks' => 'nullable|integer|min:1',
             'expired_redirect' => 'nullable|url|max:2000',
             'disabled' => 'sometimes|boolean',

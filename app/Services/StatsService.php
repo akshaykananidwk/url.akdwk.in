@@ -126,6 +126,21 @@ class StatsService
         return $query->get();
     }
 
+    /** Conversion totals for a range: count + summed value. */
+    public function conversions(?Link $link, ?int $userId, Carbon $from, Carbon $to): array
+    {
+        $query = \App\Models\Conversion::query()->whereBetween('created_at', [$from, $to->copy()->endOfDay()]);
+        if ($link) {
+            $query->where('link_id', $link->id);
+        } elseif ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        $row = $query->selectRaw('count(*) as c, coalesce(sum(value),0) as v')->first();
+
+        return ['count' => (int) $row->c, 'value' => (float) $row->v];
+    }
+
     /** Clicks recorded this calendar month for a user (plan quota checks). */
     public function clicksThisMonth(int $userId): int
     {

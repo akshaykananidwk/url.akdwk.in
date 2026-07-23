@@ -48,6 +48,10 @@ class RedirectController extends Controller
             return response()->view('link.expired', ['link' => $link, 'reason' => 'disabled'], 410);
         }
 
+        if ($link->isScheduled()) {
+            return response()->view('link.expired', ['link' => $link, 'reason' => 'scheduled'], 425);
+        }
+
         if ($link->isExpired()) {
             if ($link->expired_redirect) {
                 return redirect()->away($link->expired_redirect, 302);
@@ -105,6 +109,10 @@ class RedirectController extends Controller
         $destination = hook_filter('redirect_destination', $destination, $link, $request);
 
         $this->recordClick($request, $link);
+
+        // Drop a 30-day cookie so a later conversion pixel can be attributed
+        // to this link (only visitors who came through it are counted).
+        cookie()->queue('clk_' . $link->id, '1', 60 * 24 * 30);
 
         // Deep link → intermediate page that tries the app URI then falls back.
         if ($deep = $this->targeting->deepLink($link, $request)) {
