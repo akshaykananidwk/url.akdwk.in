@@ -162,6 +162,42 @@
         @endif
     </div>
 
+    {{-- White-label branding --}}
+    @php($canBrand = auth()->user()->currentPlan()->hasFeature('remove_branding'))
+    <div class="card card-pad">
+        <h2 class="font-semibold mb-4">{{ __('White-label branding') }}</h2>
+        @if($canBrand)
+            <form method="POST" action="{{ route('account.branding') }}" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <x-field name="brand_name" :label="__('Brand name')">
+                        <input type="text" name="brand_name" value="{{ old('brand_name', auth()->user()->branding['name'] ?? '') }}" class="input">
+                    </x-field>
+                    <x-field name="brand_color" :label="__('Brand color')">
+                        <input type="color" name="brand_color" value="{{ old('brand_color', auth()->user()->branding['color'] ?? '#6366f1') }}" class="input !p-1.5 h-11 w-full">
+                    </x-field>
+                </div>
+                <x-field name="brand_logo" :label="__('Logo')" :help="__('Shown on your bio pages and link pages instead of the default branding.')">
+                    @if(auth()->user()->branding['logo'] ?? null)
+                        <img src="{{ storage_url(auth()->user()->branding['logo']) }}" alt="" class="mb-2 h-10 w-auto rounded-lg object-contain">
+                    @endif
+                    <input type="file" name="brand_logo" accept="image/*" class="input !p-2.5">
+                </x-field>
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-primary">{{ __('Save branding') }}</button>
+                </div>
+            </form>
+        @else
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                {{ __('Replace the default branding on your bio pages and link pages with your own name, color and logo.') }}
+            </p>
+            <a href="{{ route('billing.plans') }}" class="btn-secondary">
+                <x-icon name="sparkles" class="h-4 w-4"/> {{ __('White-label branding is available on higher plans.') }}
+            </a>
+        @endif
+    </div>
+
     {{-- Danger zone --}}
     <div class="card card-pad ring-2 !ring-rose-200 dark:!ring-rose-900">
         <h2 class="font-semibold text-rose-600 dark:text-rose-400 mb-4">{{ __('Danger zone') }}</h2>

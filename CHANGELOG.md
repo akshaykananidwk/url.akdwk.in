@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.5.0] — 2026-07-23
+
+### Added — Feature batch #5 (enterprise)
+- **Single sign-on (OIDC/OAuth2)** — admins add identity providers under Admin → SSO (client ID/secret + issuer, with automatic `.well-known` endpoint discovery). A "Sign in with …" button then appears on the login page for every active provider. State + nonce are verified and the `id_token`/userinfo claims create or match the user.
+- **White-label branding** — users on a plan with the `remove_branding` feature can set a custom brand name, colour and logo (Account → Branding). A new `brand_for()` helper resolves the active branding, falling back to the site defaults.
+- **Credits wallet** — every user has a credit balance with a full transaction ledger (Credits page). Credits are spent automatically when a user exceeds their plan's link quota, and admins can grant or deduct credits from the user editor. All movements are recorded atomically (row-locked) in `credit_transactions`.
+- **Activity feed** — a per-user timeline of account and workspace events (Activity page), backed by a new `activities` table and an `Activity::log()` recorder wired into link creation, SSO logins and more.
+
 ## [1.4.0] — 2026-07-23
 
 ### Added — Feature batch #4 (integrations & bots)

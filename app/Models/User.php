@@ -17,7 +17,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'email', 'password', 'avatar', 'locale', 'timezone', 'theme',
         'plan_id', 'plan_cycle', 'plan_expires_at', 'trial_ends_at',
-        'referral_code', 'referred_by', 'default_domain', 'notification_prefs',
+        'referral_code', 'referred_by', 'default_domain', 'notification_prefs', 'branding',
     ];
 
     protected $hidden = ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'];
@@ -35,6 +35,7 @@ class User extends Authenticatable
             'permissions' => 'array',
             'notification_prefs' => 'array',
             'affiliate_balance' => 'decimal:2',
+            'branding' => 'array',
         ];
     }
 
@@ -125,6 +126,28 @@ class User extends Authenticatable
     public function alertChannels(): HasMany
     {
         return $this->hasMany(AlertChannel::class);
+    }
+
+    public function creditTransactions(): HasMany
+    {
+        return $this->hasMany(CreditTransaction::class);
+    }
+
+    /** Add (positive) or spend (negative) credits atomically, with a ledger row. */
+    public function adjustCredits(int $amount, string $reason): int
+    {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($amount, $reason) {
+            $fresh = static::whereKey($this->id)->lockForUpdate()->first();
+            $balance = max(0, (int) $fresh->credits + $amount);
+            $fresh->forceFill(['credits' => $balance])->save();
+            $this->credits = $balance;
+            CreditTransaction::create([
+                'user_id' => $this->id, 'amount' => $amount, 'reason' => $reason,
+                'balance_after' => $balance, 'created_at' => now(),
+            ]);
+
+            return $balance;
+        });
     }
 
     public function referrer(): BelongsTo

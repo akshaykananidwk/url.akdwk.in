@@ -115,6 +115,31 @@ if (! function_exists('current_language')) {
     }
 }
 
+if (! function_exists('brand_for')) {
+    /**
+     * White-label brand for a user: their custom branding when their plan has
+     * the remove_branding feature, else the site defaults. Returns
+     * ['name', 'logo', 'color'].
+     */
+    function brand_for(?\App\Models\User $user): array
+    {
+        $default = ['name' => site_name(), 'logo' => storage_url(setting('site_logo')), 'color' => '#6366f1'];
+        if (! $user) {
+            return $default;
+        }
+        if (! $user->currentPlan()->hasFeature('remove_branding')) {
+            return $default;
+        }
+        $b = $user->branding ?? [];
+
+        return [
+            'name' => $b['name'] ?? $default['name'],
+            'logo' => ! empty($b['logo']) ? storage_url($b['logo']) : $default['logo'],
+            'color' => $b['color'] ?? $default['color'],
+        ];
+    }
+}
+
 if (! function_exists('storage_url')) {
     /** Public URL for a stored file on the configured disk. */
     function storage_url(?string $path): ?string

@@ -84,6 +84,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'update'])->name('password.update');
     Route::get('/auth/social/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
     Route::match(['get', 'post'], '/auth/social/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
+    Route::get('/auth/sso/{slug}', [\App\Http\Controllers\Auth\SsoController::class, 'redirect'])->name('sso.redirect');
+    Route::match(['get', 'post'], '/auth/sso/{slug}/callback', [\App\Http\Controllers\Auth\SsoController::class, 'callback'])->name('sso.callback');
 });
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -206,6 +208,11 @@ Route::middleware(['auth', 'not.suspended', 'verified.setting'])->group(function
     // Affiliate
     Route::get('/affiliate', [User\AffiliateController::class, 'index'])->name('affiliate.index');
     Route::post('/affiliate/payout', [User\AffiliateController::class, 'requestPayout'])->name('affiliate.payout');
+
+    // Credits + activity + branding
+    Route::get('/credits', [User\CreditController::class, 'index'])->name('credits.index');
+    Route::get('/activity', [User\ActivityController::class, 'index'])->name('activity.index');
+    Route::put('/account/branding', [User\AccountController::class, 'updateBranding'])->name('account.branding');
 
     // Account
     Route::get('/account', [User\AccountController::class, 'index'])->name('account.index');
@@ -349,6 +356,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/updates/run', [Admin\SelfUpdateController::class, 'run'])->name('updates.run');
     // Advanced: per-file GitHub editor
     Route::get('/updates/editor', [Admin\UpdatePanelController::class, 'index'])->name('updates.editor');
+
+    // SSO providers
+    Route::get('/sso', [Admin\SsoController::class, 'index'])->name('sso.index');
+    Route::post('/sso', [Admin\SsoController::class, 'store'])->name('sso.store');
+    Route::put('/sso/{provider}', [Admin\SsoController::class, 'update'])->name('sso.update');
+    Route::post('/sso/{provider}/toggle', [Admin\SsoController::class, 'toggle'])->name('sso.toggle');
+    Route::delete('/sso/{provider}', [Admin\SsoController::class, 'destroy'])->name('sso.destroy');
+    Route::post('/users/{user}/credits', [Admin\UserController::class, 'adjustCredits'])->name('users.credits');
 
     // Settings
     Route::post('/settings/test-email', [Admin\SettingsController::class, 'sendTestEmail'])->name('settings.test-email');

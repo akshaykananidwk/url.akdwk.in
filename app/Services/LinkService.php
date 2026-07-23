@@ -40,6 +40,7 @@ class LinkService
         }
 
         hook_action('link_created', $link);
+        \App\Models\Activity::log('link.created', $link->shortUrl());
         DispatchWebhooks::dispatch($user->id, 'link.created', ['id' => $link->id, 'alias' => $link->alias, 'short_url' => $link->shortUrl(), 'destination' => $link->destination]);
 
         return $link;
@@ -61,11 +62,21 @@ class LinkService
 
     public function guardQuota(User $user, int $count = 1): void
     {
-        if (! $this->limits->canCreate($user, 'links', $count)) {
-            throw ValidationException::withMessages([
-                'destination' => __('You have reached the link limit of your plan. Upgrade to create more links.'),
-            ]);
+        if ($this->limits->canCreate($user, 'links', $count)) {
+            return;
         }
+
+        // Over the plan limit — allow if the user has enough pay-as-you-go
+        // credits (1 credit per extra link), spending them.
+        if ((int) $user->credits >= $count) {
+            $user->adjustCredits(-$count, 'link_over_quota');
+
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'destination' => __('You have reached the link limit of your plan. Upgrade or buy credits to create more links.'),
+        ]);
     }
 
     /** Normalize + validate incoming attributes. */

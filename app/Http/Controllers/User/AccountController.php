@@ -78,6 +78,29 @@ class AccountController extends Controller
         return back()->with('status', __('Notification preferences saved.'));
     }
 
+    /** White-label branding (requires the remove_branding plan feature). */
+    public function updateBranding(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user->currentPlan()->hasFeature('remove_branding'), 403, __('White-label branding is not available on your plan.'));
+
+        $data = $request->validate([
+            'brand_name' => 'nullable|string|max:60',
+            'brand_color' => 'nullable|string|max:9',
+            'brand_logo' => 'nullable|image|max:1024',
+        ]);
+
+        $branding = $user->branding ?? [];
+        $branding['name'] = $data['brand_name'] ?? null;
+        $branding['color'] = $data['brand_color'] ?? '#6366f1';
+        if ($request->hasFile('brand_logo')) {
+            $branding['logo'] = $request->file('brand_logo')->store('branding', setting('storage_disk', 'public'));
+        }
+        $user->update(['branding' => array_filter($branding)]);
+
+        return back()->with('status', __('Branding saved.'));
+    }
+
     /* ------------------------------------------------------------- 2FA */
 
     public function twoFactorSetup(Request $request)

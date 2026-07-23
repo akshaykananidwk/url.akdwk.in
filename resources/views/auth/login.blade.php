@@ -7,11 +7,25 @@
 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400 mb-6">{{ __('Log in to manage your links.') }}</p>
 
 @php($providers = \App\Http\Controllers\Auth\SocialAuthController::enabledProviders())
-@if($providers)
+@php($ssoProviders = \App\Http\Controllers\Auth\SsoController::active())
+@if($providers || $ssoProviders->isNotEmpty())
     <div class="space-y-2 mb-5">
         @foreach($providers as $provider)
             <a href="{{ route('social.redirect', $provider) }}" class="btn-secondary w-full">
                 {{ __('Continue with :provider', ['provider' => ['google' => 'Google', 'facebook' => 'Facebook', 'twitter' => 'X', 'github' => 'GitHub', 'apple' => 'Apple'][$provider] ?? ucfirst($provider)]) }}
+            </a>
+        @endforeach
+
+        @if($providers && $ssoProviders->isNotEmpty())
+            <div class="relative py-1">
+                <div class="absolute inset-0 flex items-center" aria-hidden="true"><div class="w-full border-t border-slate-200 dark:border-slate-700"></div></div>
+                <div class="relative flex justify-center"><span class="bg-white dark:bg-slate-900 px-3 text-xs uppercase tracking-wide text-slate-400">{{ __('single sign-on') }}</span></div>
+            </div>
+        @endif
+
+        @foreach($ssoProviders as $p)
+            <a href="{{ route('sso.redirect', $p->slug) }}" class="btn-secondary w-full">
+                <x-icon name="lock" class="h-4 w-4"/> {{ __('Sign in with :name', ['name' => $p->name]) }}
             </a>
         @endforeach
     </div>

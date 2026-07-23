@@ -91,6 +91,16 @@ class UserController extends Controller
         return back()->with('status', __('User updated.'));
     }
 
+    /** Grant or deduct credits for a user (admin). */
+    public function adjustCredits(Request $request, User $user)
+    {
+        $data = $request->validate(['amount' => 'required|integer', 'reason' => 'nullable|string|max:100']);
+        $user->adjustCredits((int) $data['amount'], $data['reason'] ?: 'admin_grant');
+        AuditLog::record('user.credits', $user, ['amount' => $data['amount']]);
+
+        return back()->with('status', __('Credits updated. New balance: :n', ['n' => $user->credits]));
+    }
+
     public function verifyEmail(User $user)
     {
         $user->forceFill(['email_verified_at' => now()])->save();

@@ -22,6 +22,7 @@
         ['route' => 'admin.reports.index', 'icon' => 'chart', 'label' => __('Reports'), 'match' => 'admin.reports.*'],
         ['route' => 'admin.audit.index', 'icon' => 'eye', 'label' => __('Audit log'), 'match' => 'admin.audit.*'],
         ['route' => 'admin.addons.index', 'icon' => 'bolt', 'label' => __('Addons'), 'match' => 'admin.addons.*'],
+        ['route' => 'admin.sso.index', 'icon' => 'lock', 'label' => __('SSO'), 'match' => 'admin.sso.*'],
         ['route' => 'admin.updates', 'icon' => 'refresh', 'label' => __('Update'), 'match' => 'admin.updates*'],
         ['route' => 'admin.settings', 'icon' => 'settings', 'label' => __('Settings'), 'match' => 'admin.settings*'],
     ];
