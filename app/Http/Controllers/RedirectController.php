@@ -97,11 +97,23 @@ class RedirectController extends Controller
 
     protected function finish(Request $request, Link $link)
     {
-        // vCard links serve a downloadable .vcf instead of redirecting.
+        // vCard links: raw .vcf on ?vcf=1, otherwise a "digital business card" page.
         if ($link->type === 'vcard') {
+            if ($request->boolean('vcf')) {
+                return $this->vcardResponse($link);
+            }
             $this->recordClick($request, $link);
+            cookie()->queue('clk_' . $link->id, '1', 60 * 24 * 30);
 
-            return $this->vcardResponse($link);
+            return response()->view('link.vcard', ['link' => $link]);
+        }
+
+        // Smart music/podcast links: a landing page listing every streaming service.
+        if ($link->type === 'music') {
+            $this->recordClick($request, $link);
+            cookie()->queue('clk_' . $link->id, '1', 60 * 24 * 30);
+
+            return response()->view('link.music', ['link' => $link]);
         }
 
         $destination = $this->targeting->resolve($link, $request);

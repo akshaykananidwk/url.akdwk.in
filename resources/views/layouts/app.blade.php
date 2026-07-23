@@ -14,6 +14,7 @@
         ['route' => 'team.index', 'icon' => 'users', 'label' => __('Team'), 'match' => 'team*'],
         ['route' => 'integrations.index', 'icon' => 'bolt', 'label' => __('Integrations'), 'match' => 'integrations*'],
         ['route' => 'developers.index', 'icon' => 'code', 'label' => __('Developers'), 'match' => 'developers*'],
+        ['route' => 'tips.index', 'icon' => 'gift', 'label' => __('Tips'), 'match' => 'tips*'],
         ['route' => 'affiliate.index', 'icon' => 'gift', 'label' => __('Affiliate'), 'match' => 'affiliate*'],
         ['route' => 'billing.plans', 'icon' => 'card', 'label' => __('Billing'), 'match' => 'billing*'],
         ['route' => 'account.index', 'icon' => 'settings', 'label' => __('Account'), 'match' => 'account*'],

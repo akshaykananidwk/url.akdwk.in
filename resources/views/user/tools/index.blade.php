@@ -85,6 +85,55 @@
                 <button type="submit" class="btn-primary w-full"><x-icon name="phone" class="h-4 w-4"/> {{ __('Create WhatsApp link') }}</button>
             </form>
         </div>
+
+        {{-- Smart app link --}}
+        <div class="card card-pad">
+            <h2 class="font-semibold mb-1">{{ __('Smart app link') }}</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ __('iOS visitors go to the App Store, Android to Google Play, and everyone else to your fallback URL.') }}</p>
+            <form method="POST" action="{{ route('tools.app') }}" class="space-y-3">
+                @csrf
+                <x-field name="title" :label="__('Title')">
+                    <input type="text" name="title" value="{{ old('title') }}" class="input" placeholder="{{ __('My app') }}">
+                </x-field>
+                <x-field name="ios" :label="__('App Store URL')">
+                    <input type="url" name="ios" value="{{ old('ios') }}" class="input" placeholder="https://apps.apple.com/…" inputmode="url">
+                </x-field>
+                <x-field name="android" :label="__('Google Play URL')">
+                    <input type="url" name="android" value="{{ old('android') }}" class="input" placeholder="https://play.google.com/…" inputmode="url">
+                </x-field>
+                <x-field name="fallback" :label="__('Fallback URL')" :help="__('Shown on desktop / other devices.')">
+                    <input type="url" name="fallback" value="{{ old('fallback') }}" required class="input" placeholder="https://" inputmode="url">
+                </x-field>
+                <button type="submit" class="btn-primary w-full"><x-icon name="device" class="h-4 w-4"/> {{ __('Create app link') }}</button>
+            </form>
+        </div>
+
+        {{-- Music / podcast link --}}
+        <div class="card card-pad">
+            <h2 class="font-semibold mb-1">{{ __('Music / podcast link') }}</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ __("Fill in the services you're on; visitors get a landing page with a button for each.") }}</p>
+            <form method="POST" action="{{ route('tools.music') }}" class="space-y-3">
+                @csrf
+                <x-field name="title" :label="__('Title')">
+                    <input type="text" name="title" value="{{ old('title') }}" required class="input" placeholder="{{ __('Track or album name') }}">
+                </x-field>
+                <div class="grid grid-cols-2 gap-3">
+                    <x-field name="artist" :label="__('Artist')">
+                        <input type="text" name="artist" value="{{ old('artist') }}" class="input">
+                    </x-field>
+                    <x-field name="artwork" :label="__('Artwork URL')">
+                        <input type="url" name="artwork" value="{{ old('artwork') }}" class="input" placeholder="https://" inputmode="url">
+                    </x-field>
+                </div>
+                <div class="space-y-2">
+                    <p class="label">{{ __('Streaming links') }}</p>
+                    @foreach($musicServices as $key => $label)
+                        <input type="url" name="services[{{ $key }}]" value="{{ old('services.' . $key) }}" class="input" placeholder="{{ $label }} {{ __('link') }}" inputmode="url">
+                    @endforeach
+                </div>
+                <button type="submit" class="btn-primary w-full"><x-icon name="bolt" class="h-4 w-4"/> {{ __('Create music link') }}</button>
+            </form>
+        </div>
     </div>
 
     {{-- Share helper --}}

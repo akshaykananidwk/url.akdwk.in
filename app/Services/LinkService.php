@@ -69,10 +69,20 @@ class LinkService
     }
 
     /** Normalize + validate incoming attributes. */
+    /** Special link types whose "destination" is a placeholder served by type (not a redirect). */
+    protected const SPECIAL_TYPES = ['vcard', 'whatsapp', 'file', 'music'];
+
     protected function prepare(User $user, array $data, ?Link $existing = null): array
     {
         if (isset($data['destination'])) {
-            $data['destination'] = $this->validateDestination($data['destination']);
+            $type = $data['type'] ?? $existing?->type ?? 'link';
+            if (in_array($type, self::SPECIAL_TYPES, true)) {
+                // vCard/file/music/whatsapp links serve special content by type,
+                // so their destination is a placeholder — skip strict URL rules.
+                $data['destination'] = trim($data['destination']);
+            } else {
+                $data['destination'] = $this->validateDestination($data['destination']);
+            }
         }
 
         // Domain: user may only use their own verified domains or global ones.

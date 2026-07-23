@@ -21,9 +21,92 @@ class ToolsController extends Controller
     ) {
     }
 
+    /** Streaming services offered by the music smart-link generator. */
+    public const MUSIC_SERVICES = [
+        'spotify' => 'Spotify', 'apple' => 'Apple Music', 'youtube' => 'YouTube',
+        'youtube_music' => 'YouTube Music', 'amazon' => 'Amazon Music', 'soundcloud' => 'SoundCloud',
+        'deezer' => 'Deezer', 'tidal' => 'Tidal', 'pandora' => 'Pandora', 'audiomack' => 'Audiomack',
+    ];
+
     public function index()
     {
-        return view('user.tools.index');
+        return view('user.tools.index', ['musicServices' => self::MUSIC_SERVICES]);
+    }
+
+    /**
+     * Smart app link: one URL that sends iOS users to the App Store, Android
+     * users to Google Play, and everyone else to a fallback. Built on the
+     * existing platform-targeting engine, so no special redirect handling.
+     */
+    public function appLink(Request $request)
+    {
+        $user = $request->user();
+        $this->links->guardQuota($user);
+
+        $data = $request->validate([
+            'title' => 'nullable|string|max:190',
+            'ios' => 'nullable|url|max:2000',
+            'android' => 'nullable|url|max:2000',
+            'fallback' => 'required|url|max:2000',
+        ]);
+
+        $targeting = ['platform' => []];
+        if (! empty($data['ios'])) {
+            $targeting['platform'][] = ['key' => 'iOS', 'url' => $data['ios']];
+        }
+        if (! empty($data['android'])) {
+            $targeting['platform'][] = ['key' => 'Android', 'url' => $data['android']];
+        }
+
+        $link = $this->links->create($user, [
+            'destination' => $data['fallback'],
+            'title' => $data['title'] ?: 'App link',
+            'targeting' => $targeting,
+        ]);
+
+        return back()->with('status', __('Smart app link created.'))->with('created_link', $link->shortUrl());
+    }
+
+    /**
+     * Music/podcast smart link: a landing page with a button for every
+     * streaming service. Stored as a link of type "music".
+     */
+    public function musicLink(Request $request)
+    {
+        $user = $request->user();
+        $this->links->guardQuota($user);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:190',
+            'artist' => 'nullable|string|max:190',
+            'artwork' => 'nullable|url|max:2000',
+            'services' => 'required|array',
+            'services.*' => 'nullable|url|max:2000',
+        ]);
+
+        $services = [];
+        foreach ($data['services'] as $key => $url) {
+            if (! empty($url) && isset(self::MUSIC_SERVICES[$key])) {
+                $services[] = ['key' => $key, 'name' => self::MUSIC_SERVICES[$key], 'url' => $url];
+            }
+        }
+        if (! $services) {
+            return back()->withErrors(['services' => __('Add at least one streaming link.')])->withInput();
+        }
+
+        // destination = first service (used if a bot/crawler hits the link)
+        $link = $this->links->create($user, [
+            'destination' => $services[0]['url'],
+            'title' => $data['title'],
+        ]);
+        $link->update(['type' => 'music', 'meta' => [
+            'title' => $data['title'],
+            'artist' => $data['artist'] ?? null,
+            'artwork' => $data['artwork'] ?? null,
+            'services' => $services,
+        ]]);
+
+        return back()->with('status', __('Music link created.'))->with('created_link', $link->shortUrl());
     }
 
     public function fileToLink(Request $request)

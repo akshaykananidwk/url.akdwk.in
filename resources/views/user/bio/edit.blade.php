@@ -25,6 +25,21 @@
 
     {{-- ============================== BLOCKS ============================== --}}
     <div x-show="tab === 'blocks'" class="space-y-4">
+        {{-- Start from a template --}}
+        <div class="card card-pad">
+            <h2 class="font-semibold mb-1">{{ __('Start from a template') }}</h2>
+            <p class="help mb-3">{{ __('Applies a theme + starter blocks you can then edit.') }}</p>
+            <div class="flex flex-wrap gap-2">
+                @foreach($templates as $key => $t)
+                    <form method="POST" action="{{ route('bio.apply-template', $page) }}">
+                        @csrf
+                        <input type="hidden" name="template" value="{{ $key }}">
+                        <button type="submit" class="btn-secondary btn-sm">{{ $t['name'] }}</button>
+                    </form>
+                @endforeach
+            </div>
+        </div>
+
         <div class="card card-pad">
             <h2 class="font-semibold mb-3">{{ __('Add a block') }}</h2>
             <form method="POST" action="{{ route('bio.blocks.store', $page) }}" class="space-y-3"
@@ -62,6 +77,35 @@
                     <input type="text" name="content[organization]" class="input" placeholder="{{ __('Company') }}">
                 </div>
                 <p x-show="type === 'socials'" class="help">{{ __('Shows the social icons configured in Settings.') }}</p>
+                <div x-show="type === 'music'" class="space-y-3">
+                    <input type="text" name="content[title]" class="input" placeholder="{{ __('Section title, e.g. Listen now') }}">
+                    <textarea name="content[note]" rows="2" class="input" placeholder="{{ __('Optional note') }}"></textarea>
+                </div>
+                <div x-show="type === 'tip'" class="space-y-3">
+                    <input type="text" name="content[headline]" class="input" placeholder="{{ __('Support me 🙌') }}">
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <select name="content[method]" class="input">
+                            <option value="upi">{{ __('UPI') }}</option>
+                            <option value="paypal">{{ __('PayPal') }}</option>
+                            <option value="url">{{ __('Payment URL') }}</option>
+                        </select>
+                        <input type="text" name="content[currency]" class="input" placeholder="{{ __('Currency, e.g. INR / USD') }}">
+                    </div>
+                    <x-field name="content.target" :help="__('UPI ID, PayPal.me username, or a full payment URL.')">
+                        <input type="text" name="content[target]" class="input" placeholder="{{ __('name@upi / paypal.me/you / https://…') }}">
+                    </x-field>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="number" name="content[amounts][]" class="input" placeholder="50">
+                        <input type="number" name="content[amounts][]" class="input" placeholder="100">
+                        <input type="number" name="content[amounts][]" class="input" placeholder="200">
+                    </div>
+                </div>
+                <div x-show="type === 'app'" class="space-y-3">
+                    <input type="text" name="content[title]" class="input" placeholder="{{ __('Button title, e.g. Get the app') }}">
+                    <input type="url" name="content[ios]" class="input" placeholder="{{ __('App Store URL') }}">
+                    <input type="url" name="content[android]" class="input" placeholder="{{ __('Google Play URL') }}">
+                    <input type="url" name="content[fallback]" class="input" placeholder="{{ __('Fallback URL') }}">
+                </div>
 
                 <details class="text-sm">
                     <summary class="cursor-pointer text-slate-500 min-h-touch inline-flex items-center">{{ __('Schedule (optional)') }}</summary>
@@ -151,6 +195,35 @@
                                 <input type="text" name="content[phone]" class="input" placeholder="{{ __('Phone') }}" value="{{ $c['phone'] ?? '' }}">
                                 <input type="email" name="content[email]" class="input" placeholder="{{ __('Email') }}" value="{{ $c['email'] ?? '' }}">
                                 <input type="text" name="content[organization]" class="input" placeholder="{{ __('Company') }}" value="{{ $c['organization'] ?? '' }}">
+                                @break
+                            @case('music')
+                                <input type="text" name="content[title]" class="input" placeholder="{{ __('Section title, e.g. Listen now') }}" value="{{ $c['title'] ?? '' }}">
+                                <textarea name="content[note]" rows="2" class="input" placeholder="{{ __('Optional note') }}">{{ $c['note'] ?? '' }}</textarea>
+                                @break
+                            @case('tip')
+                                <input type="text" name="content[headline]" class="input" placeholder="{{ __('Support me 🙌') }}" value="{{ $c['headline'] ?? '' }}">
+                                <div class="grid sm:grid-cols-2 gap-3">
+                                    <select name="content[method]" class="input">
+                                        <option value="upi" @selected(($c['method'] ?? '') === 'upi')>{{ __('UPI') }}</option>
+                                        <option value="paypal" @selected(($c['method'] ?? '') === 'paypal')>{{ __('PayPal') }}</option>
+                                        <option value="url" @selected(($c['method'] ?? '') === 'url')>{{ __('Payment URL') }}</option>
+                                    </select>
+                                    <input type="text" name="content[currency]" class="input" placeholder="{{ __('Currency') }}" value="{{ $c['currency'] ?? '' }}">
+                                </div>
+                                <x-field name="content.target" :help="__('UPI ID, PayPal.me username, or a full payment URL.')">
+                                    <input type="text" name="content[target]" class="input" placeholder="{{ __('name@upi / paypal.me/you / https://…') }}" value="{{ $c['target'] ?? '' }}">
+                                </x-field>
+                                <div class="grid grid-cols-3 gap-3">
+                                    @for($ai = 0; $ai < 3; $ai++)
+                                        <input type="number" name="content[amounts][]" class="input" placeholder="{{ [50, 100, 200][$ai] }}" value="{{ $c['amounts'][$ai] ?? '' }}">
+                                    @endfor
+                                </div>
+                                @break
+                            @case('app')
+                                <input type="text" name="content[title]" class="input" placeholder="{{ __('Button title, e.g. Get the app') }}" value="{{ $c['title'] ?? '' }}">
+                                <input type="url" name="content[ios]" class="input" placeholder="{{ __('App Store URL') }}" value="{{ $c['ios'] ?? '' }}">
+                                <input type="url" name="content[android]" class="input" placeholder="{{ __('Google Play URL') }}" value="{{ $c['android'] ?? '' }}">
+                                <input type="url" name="content[fallback]" class="input" placeholder="{{ __('Fallback URL') }}" value="{{ $c['fallback'] ?? '' }}">
                                 @break
                         @endswitch
                         <div class="grid sm:grid-cols-2 gap-3">

@@ -252,6 +252,56 @@
                             @endforeach
                         </div>
                         @break
+
+                    @case('music')
+                        @if(!empty($c['title']))
+                            <h2 class="block-heading">{{ $c['title'] }}</h2>
+                        @endif
+                        @if(!empty($c['note']))
+                            <p class="block-text">{{ $c['note'] }}</p>
+                        @endif
+                        @break
+
+                    @case('app')
+                        @if(!empty($c['ios']) || !empty($c['android']))
+                            @if(!empty($c['ios']))
+                                <a class="btn-block" href="{{ $c['ios'] }}" target="_blank" rel="noopener">{{ __('Download on the App Store') }}</a>
+                            @endif
+                            @if(!empty($c['android']))
+                                <a class="btn-block" href="{{ $c['android'] }}" target="_blank" rel="noopener">{{ __('Get it on Google Play') }}</a>
+                            @endif
+                        @elseif(!empty($c['fallback']))
+                            <a class="btn-block" href="{{ $c['fallback'] }}" target="_blank" rel="noopener">{{ $c['title'] ?? __('Get the app') }}</a>
+                        @endif
+                        @break
+
+                    @case('tip')
+                        <div class="email-form">
+                            <form method="POST" action="{{ route('bio.tip', $page) }}">
+                                @csrf
+                                <input type="hidden" name="block_id" value="{{ $block->id }}">
+                                <label>{{ $c['headline'] ?? __('Support me') }}</label>
+                                @if(!empty($c['amounts']) && is_array($c['amounts']))
+                                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+                                        @foreach(array_filter($c['amounts'], fn ($a) => $a !== '' && $a !== null) as $amt)
+                                            <button type="submit" name="amount" value="{{ $amt }}"
+                                                    style="flex:1;min-width:72px;min-height:46px;padding:10px 14px;border:0;border-radius:10px;background:var(--button);color:var(--button-text);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+                                                {{ format_money($amt, $c['currency'] ?? null) }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <input type="text" name="name" placeholder="{{ __('Your name (optional)') }}"
+                                       style="width:100%;min-height:46px;padding:10px 12px;font-size:14px;border:1px solid rgba(128,128,128,.35);border-radius:10px;background:transparent;color:var(--text);font-family:inherit;margin-bottom:8px">
+                                <input type="text" name="message" placeholder="{{ __('Message (optional)') }}"
+                                       style="width:100%;min-height:46px;padding:10px 12px;font-size:14px;border:1px solid rgba(128,128,128,.35);border-radius:10px;background:transparent;color:var(--text);font-family:inherit;margin-bottom:8px">
+                                <div class="email-row">
+                                    <input type="number" name="amount" min="1" step="1" placeholder="{{ __('Custom amount') }}" inputmode="decimal">
+                                    <button type="submit">{{ __('Send') }}</button>
+                                </div>
+                            </form>
+                        </div>
+                        @break
                 @endswitch
             @endforeach
         </main>

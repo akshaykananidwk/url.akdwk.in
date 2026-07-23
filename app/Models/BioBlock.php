@@ -11,6 +11,9 @@ class BioBlock extends Model
         'link' => 'Link button', 'heading' => 'Heading', 'text' => 'Text', 'image' => 'Image',
         'video' => 'Video embed', 'email_form' => 'Email signup', 'whatsapp' => 'WhatsApp button',
         'phone' => 'Phone button', 'vcard' => 'vCard download', 'socials' => 'Social icons',
+        'music' => 'Music / podcast',
+        'tip' => 'Tip jar / donations',
+        'app' => 'App download (smart)',
         'divider' => 'Divider',
     ];
 

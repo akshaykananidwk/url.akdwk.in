@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.3.0] — 2026-07-23
+
+### Added — Feature batch #3
+- **Smart app links** — one link that sends iOS users to the App Store, Android to Google Play, everyone else to a fallback.
+- **Music / podcast smart links** — a landing page with a button for every streaming service (Spotify, Apple Music, YouTube, and more).
+- **Tip jar / donations** — a bio-page block letting supporters tip via UPI, PayPal.me or a custom payment link; tips are recorded and listed under a new Tips page.
+- **vCard+ digital business card** — vCard links now open a polished contact card with a one-tap "Save contact"; raw .vcf still available at `?vcf=1`.
+- **Bio templates gallery** — one-click starter templates (Creator, Business, Musician, Restaurant) that set a theme and seed starter blocks.
+
+### Fixed
+- vCard and file-to-link tools no longer fail URL validation on live domains (their placeholder destination is served by type).
+
 ## [1.2.0] — 2026-07-23
 
 ### Added — Feature batch #2

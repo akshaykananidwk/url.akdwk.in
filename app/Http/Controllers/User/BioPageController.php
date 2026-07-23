@@ -11,6 +11,53 @@ use Illuminate\Http\Request;
 class BioPageController extends Controller
 {
     public const THEMES = ['default', 'midnight', 'sunset', 'forest', 'ocean', 'candy', 'mono'];
+
+    /**
+     * Ready-made starter templates: a theme + starter blocks the user can apply
+     * with one click, then customise. Keyed for the gallery on the editor.
+     */
+    public const TEMPLATES = [
+        'creator' => [
+            'name' => 'Creator', 'theme' => 'sunset', 'font' => 'Poppins',
+            'blocks' => [
+                ['type' => 'heading', 'content' => ['text' => 'Welcome 👋']],
+                ['type' => 'link', 'content' => ['title' => 'My latest video', 'url' => '']],
+                ['type' => 'link', 'content' => ['title' => 'Shop my merch', 'url' => '']],
+                ['type' => 'socials', 'content' => []],
+                ['type' => 'email_form', 'content' => ['title' => 'Join my newsletter']],
+            ],
+        ],
+        'business' => [
+            'name' => 'Business', 'theme' => 'ocean', 'font' => 'Inter',
+            'blocks' => [
+                ['type' => 'heading', 'content' => ['text' => 'Our services']],
+                ['type' => 'link', 'content' => ['title' => 'Visit our website', 'url' => '']],
+                ['type' => 'link', 'content' => ['title' => 'Book a call', 'url' => '']],
+                ['type' => 'whatsapp', 'content' => ['phone' => '']],
+                ['type' => 'vcard', 'content' => ['name' => '', 'phone' => '', 'email' => '']],
+            ],
+        ],
+        'musician' => [
+            'name' => 'Musician', 'theme' => 'midnight', 'font' => 'Space Grotesk',
+            'blocks' => [
+                ['type' => 'heading', 'content' => ['text' => 'New release out now 🎵']],
+                ['type' => 'music', 'content' => ['title' => 'Listen everywhere', 'services' => []]],
+                ['type' => 'link', 'content' => ['title' => 'Tour dates', 'url' => '']],
+                ['type' => 'tip', 'content' => ['method' => 'upi', 'target' => '', 'currency' => 'INR', 'amounts' => [50, 100, 200]]],
+                ['type' => 'socials', 'content' => []],
+            ],
+        ],
+        'restaurant' => [
+            'name' => 'Restaurant', 'theme' => 'candy', 'font' => 'DM Sans',
+            'blocks' => [
+                ['type' => 'heading', 'content' => ['text' => 'Today\'s menu']],
+                ['type' => 'link', 'content' => ['title' => 'Order online', 'url' => '']],
+                ['type' => 'link', 'content' => ['title' => 'Reserve a table', 'url' => '']],
+                ['type' => 'whatsapp', 'content' => ['phone' => '']],
+                ['type' => 'phone', 'content' => ['phone' => '']],
+            ],
+        ],
+    ];
     public const FONTS = ['Inter', 'Poppins', 'Roboto', 'Merriweather', 'Space Grotesk', 'DM Sans'];
 
     public function __construct(protected PlanLimits $limits)
@@ -49,8 +96,31 @@ class BioPageController extends Controller
             'themes' => self::THEMES,
             'fonts' => self::FONTS,
             'blockTypes' => BioBlock::TYPES,
+            'templates' => self::TEMPLATES,
             'domains' => $request->user()->domains()->whereNotNull('verified_at')->get(),
         ]);
+    }
+
+    /** Apply a starter template: sets theme/font and appends its starter blocks. */
+    public function applyTemplate(Request $request, BioPage $bioPage)
+    {
+        abort_unless($bioPage->user_id === $request->user()->id, 403);
+        $key = $request->input('template');
+        $tpl = self::TEMPLATES[$key] ?? abort(404);
+
+        $bioPage->update(['theme' => $tpl['theme'], 'font' => $tpl['font']]);
+
+        $order = (int) ($bioPage->blocks()->max('sort_order') ?? 0);
+        foreach ($tpl['blocks'] as $block) {
+            $bioPage->blocks()->create([
+                'type' => $block['type'],
+                'content' => $block['content'],
+                'sort_order' => ++$order,
+                'active' => true,
+            ]);
+        }
+
+        return back()->with('status', __('Template applied. Customize the blocks below.'));
     }
 
     public function update(Request $request, BioPage $bioPage)

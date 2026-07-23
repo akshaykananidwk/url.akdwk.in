@@ -29,6 +29,51 @@ class BioPublicController extends Controller
         return $target ? redirect()->away($target) : back();
     }
 
+    /**
+     * Tip jar: a supporter picks an amount, we record the intent and forward
+     * them to the owner's configured payment target (UPI / PayPal.me / link).
+     * The tip block content: {method: upi|paypal|url, target, currency}.
+     */
+    public function tip(Request $request, BioPage $bioPage)
+    {
+        $data = $request->validate([
+            'block_id' => 'required|integer',
+            'amount' => 'required|numeric|min:1|max:1000000',
+            'name' => 'nullable|string|max:100',
+            'message' => 'nullable|string|max:500',
+        ]);
+
+        $block = $bioPage->blocks()->where('id', $data['block_id'])->where('type', 'tip')->firstOrFail();
+        $c = $block->content ?? [];
+        $method = $c['method'] ?? 'url';
+        $target = $c['target'] ?? '';
+        $currency = $c['currency'] ?? setting('currency', 'USD');
+        $amount = number_format((float) $data['amount'], 2, '.', '');
+
+        \App\Models\Tip::create([
+            'bio_page_id' => $bioPage->id,
+            'user_id' => $bioPage->user_id,
+            'supporter_name' => $data['name'] ?? null,
+            'message' => $data['message'] ?? null,
+            'amount' => $amount,
+            'currency' => $currency,
+            'gateway' => $method,
+            'status' => 'pending',
+        ]);
+        $block->increment('clicks');
+
+        $payUrl = match ($method) {
+            'upi' => 'upi://pay?' . http_build_query([
+                'pa' => $target, 'pn' => $bioPage->title, 'am' => $amount, 'cu' => 'INR',
+                'tn' => 'Tip for ' . $bioPage->username,
+            ]),
+            'paypal' => 'https://www.paypal.com/paypalme/' . ltrim($target, '/') . '/' . $amount,
+            default => $target, // custom URL (Ko-fi, BuyMeACoffee, Stripe link, …)
+        };
+
+        return redirect()->away($payUrl);
+    }
+
     public function subscribe(Request $request, BioPage $bioPage)
     {
         $data = $request->validate(['email' => 'required|email|max:190', 'block_id' => 'nullable|integer']);

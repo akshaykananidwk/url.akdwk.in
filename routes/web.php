@@ -169,6 +169,12 @@ Route::middleware(['auth', 'not.suspended', 'verified.setting'])->group(function
     Route::post('/tools/file', [User\ToolsController::class, 'fileToLink'])->name('tools.file');
     Route::post('/tools/vcard', [User\ToolsController::class, 'vcard'])->name('tools.vcard');
     Route::post('/tools/whatsapp', [User\ToolsController::class, 'whatsapp'])->name('tools.whatsapp');
+    Route::post('/tools/app-link', [User\ToolsController::class, 'appLink'])->name('tools.app');
+    Route::post('/tools/music', [User\ToolsController::class, 'musicLink'])->name('tools.music');
+
+    // Bio page templates + tips
+    Route::post('/bio/{bioPage}/apply-template', [User\BioPageController::class, 'applyTemplate'])->name('bio.apply-template');
+    Route::get('/tips', [User\TipController::class, 'index'])->name('tips.index');
 
     // Team
     Route::get('/team', [User\TeamController::class, 'index'])->name('team.index');
@@ -353,6 +359,7 @@ Route::get('/@{username}', [BioPublicController::class, 'show'])->name('bio.show
 Route::post('/bio/{bioPage}/subscribe', [BioPublicController::class, 'subscribe'])->middleware('throttle:10,1')->name('bio.subscribe');
 Route::get('/bio/{bioPage}/vcard.vcf', [BioPublicController::class, 'vcard'])->name('bio.vcard');
 Route::get('/b/{block}', [BioPublicController::class, 'blockClick'])->name('bio.block.click');
+Route::match(['get', 'post'], '/bio/{bioPage}/tip', [BioPublicController::class, 'tip'])->middleware('throttle:20,1')->name('bio.tip');
 
 Route::get('/stats/{alias}', [User\StatsController::class, 'publicStats'])->name('stats.public');
 
