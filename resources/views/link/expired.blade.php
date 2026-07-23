@@ -15,6 +15,12 @@
         @if($reason === 'disabled')
             <h1 class="mt-4 text-lg font-bold tracking-tight">{{ __('This link has been disabled') }}</h1>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ __('The owner has turned this short link off. It may come back later.') }}</p>
+        @elseif($reason === 'scheduled')
+            <h1 class="mt-4 text-lg font-bold tracking-tight">{{ __('This link is not active yet') }}</h1>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ __('This link is not active yet. Please check back later.') }}</p>
+            @if($link->starts_at)
+                <p class="mt-2 text-sm font-medium">{{ __('Goes live on :time', ['time' => $link->starts_at->format('M j, Y — H:i')]) }}</p>
+            @endif
         @else
             <h1 class="mt-4 text-lg font-bold tracking-tight">{{ __('This link has expired') }}</h1>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ __('The short link you followed is no longer active.') }}</p>
