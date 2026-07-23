@@ -179,6 +179,13 @@ class LinkService
             throw ValidationException::withMessages(['destination' => __('This URL was flagged as unsafe and cannot be shortened.')]);
         }
 
+        // Optional AI spam/phishing gate (Admin → Settings → AI).
+        if (setting('ai_spam_check') && setting('ai_key')) {
+            if (app(\App\Services\AiService::class)->spamScore($url) >= 80) {
+                throw ValidationException::withMessages(['destination' => __('This URL was flagged as unsafe and cannot be shortened.')]);
+            }
+        }
+
         return hook_filter('link_destination', $url);
     }
 

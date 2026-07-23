@@ -151,6 +151,15 @@ class LinkController extends Controller
         return back()->with('status', __('Link moved.'));
     }
 
+    /** Ping this link's destination and update its health badge. */
+    public function checkHealth(Request $request, Link $link)
+    {
+        Gate::authorize('update', $link);
+        \Illuminate\Support\Facades\Artisan::call('app:check-link-health', ['--link' => $link->id]);
+
+        return back()->with('status', __('Link health checked.'));
+    }
+
     public function bulkDelete(Request $request)
     {
         $ids = array_filter((array) $request->input('ids', []));

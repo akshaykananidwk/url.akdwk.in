@@ -117,6 +117,9 @@ class RecordClick implements ShouldQueue
 
         hook_action('click_recorded', $click, $link);
 
+        // Click alerts (Slack/Discord/Telegram): instant, and on click milestones.
+        $this->maybeAlert($link);
+
         DispatchWebhooks::dispatch($this->userId, 'click.created', [
             'link_id' => $link->id,
             'alias' => $link->alias,
@@ -130,6 +133,26 @@ class RecordClick implements ShouldQueue
             'is_qr' => $click->is_qr,
             'clicked_at' => $click->created_at->toIso8601String(),
         ]);
+    }
+
+    /** Fire Slack/Discord/Telegram alerts for instant + milestone rules. */
+    protected function maybeAlert(Link $link): void
+    {
+        if (! \App\Models\AlertChannel::where('user_id', $this->userId)->where('active', true)->exists()) {
+            return;
+        }
+
+        $total = (int) $link->clicks_count + 1; // +1: the row update may not be reflected on $link yet
+        $channels = \App\Models\AlertChannel::where('user_id', $this->userId)->where('active', true)->get();
+
+        $instant = $channels->firstWhere('instant', true) !== null;
+        $milestoneHit = $channels->contains(fn ($c) => $c->milestone > 0 && $total % $c->milestone === 0);
+
+        if ($instant) {
+            \App\Jobs\SendClickAlert::dispatch($this->userId, $link->id, 'instant', $total);
+        } elseif ($milestoneHit) {
+            \App\Jobs\SendClickAlert::dispatch($this->userId, $link->id, 'milestone', $total);
+        }
     }
 
     /** Incrementally maintain the daily rollup row (runs inside the click transaction). */

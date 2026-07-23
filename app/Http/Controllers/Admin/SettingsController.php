@@ -100,6 +100,12 @@ class SettingsController extends Controller
                 'invoice_prefix' => 'nullable|string|max:10',
                 'invoice_company_details' => 'nullable|string|max:2000',
             ],
+            'ai' => [
+                'ai_provider' => 'nullable|in:anthropic,openai',
+                'ai_key' => 'nullable|string|max:255',
+                'ai_model' => 'nullable|string|max:100',
+                'ai_spam_check' => 'nullable|boolean',
+            ],
         ];
     }
 
@@ -107,7 +113,7 @@ class SettingsController extends Controller
     protected array $encrypted = [
         'smtp_password', 'captcha_secret', 'safe_browsing_key',
         'oauth_google_secret', 'oauth_facebook_secret', 'oauth_twitter_secret',
-        'oauth_github_secret', 'oauth_apple_secret', 's3_secret',
+        'oauth_github_secret', 'oauth_apple_secret', 's3_secret', 'ai_key',
     ];
 
     public function index(Request $request, GatewayManager $gateways, ThemeManager $themes, string $tab = 'general')

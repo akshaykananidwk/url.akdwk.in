@@ -113,6 +113,7 @@ Route::middleware(['auth', 'not.suspended', 'verified.setting'])->group(function
     Route::post('/links/{link}/archive', [User\LinkController::class, 'archive'])->name('links.archive');
     Route::post('/links/{link}/duplicate', [User\LinkController::class, 'duplicate'])->name('links.duplicate');
     Route::post('/links/{link}/move', [User\LinkController::class, 'move'])->name('links.move');
+    Route::post('/links/{link}/check-health', [User\LinkController::class, 'checkHealth'])->name('links.check-health');
 
     // Spaces
     Route::get('/spaces', [User\SpaceController::class, 'index'])->name('spaces.index');
@@ -179,6 +180,16 @@ Route::middleware(['auth', 'not.suspended', 'verified.setting'])->group(function
     Route::post('/developers/webhooks/{webhook}/toggle', [User\DeveloperController::class, 'toggleWebhook'])->name('developers.webhooks.toggle');
     Route::delete('/developers/webhooks/{webhook}', [User\DeveloperController::class, 'destroyWebhook'])->name('developers.webhooks.destroy');
     Route::view('/developers/docs', 'user.developers.docs')->name('developers.docs');
+
+    // Integrations: UTM templates + click alerts (Slack/Discord/Telegram) + AI
+    Route::get('/integrations', [User\IntegrationController::class, 'index'])->name('integrations.index');
+    Route::post('/integrations/utm', [User\IntegrationController::class, 'storeTemplate'])->name('integrations.utm.store');
+    Route::delete('/integrations/utm/{template}', [User\IntegrationController::class, 'destroyTemplate'])->name('integrations.utm.destroy');
+    Route::post('/integrations/channels', [User\IntegrationController::class, 'storeChannel'])->name('integrations.channels.store');
+    Route::post('/integrations/channels/{channel}/toggle', [User\IntegrationController::class, 'toggleChannel'])->name('integrations.channels.toggle');
+    Route::post('/integrations/channels/{channel}/test', [User\IntegrationController::class, 'testChannel'])->name('integrations.channels.test');
+    Route::delete('/integrations/channels/{channel}', [User\IntegrationController::class, 'destroyChannel'])->name('integrations.channels.destroy');
+    Route::post('/links/ai-suggest', [User\IntegrationController::class, 'aiSuggest'])->name('links.ai-suggest');
 
     // Affiliate
     Route::get('/affiliate', [User\AffiliateController::class, 'index'])->name('affiliate.index');

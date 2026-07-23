@@ -22,3 +22,9 @@ Schedule::command('app:process-subscriptions')->hourly();
 
 // Queue hygiene.
 Schedule::command('queue:prune-failed --hours=168')->daily();
+
+// Link health checks — ping destinations and flag dead links.
+Schedule::command('app:check-link-health')->dailyAt('04:00');
+
+// Weekly click report digest to opted-in users (Mondays 8am).
+Schedule::command('app:send-click-reports --days=7')->weeklyOn(1, '08:00');
