@@ -312,8 +312,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/addons/{slug}/toggle', [Admin\AddonController::class, 'toggle'])->name('addons.toggle');
     Route::get('/backup/download', [Admin\BackupController::class, 'download'])->name('backup.download');
 
-    // GitHub update panel (edit + push site files from the browser)
-    Route::get('/updates', [Admin\UpdatePanelController::class, 'index'])->name('updates');
+    // One-click self-updater (pulls latest from GitHub and applies it)
+    Route::get('/updates', [Admin\SelfUpdateController::class, 'index'])->name('updates');
+    Route::post('/updates/source', [Admin\SelfUpdateController::class, 'saveSource'])->name('updates.source');
+    Route::post('/updates/clear-token', [Admin\SelfUpdateController::class, 'clearToken'])->name('updates.clear-token');
+    Route::get('/updates/check', [Admin\SelfUpdateController::class, 'check'])->name('updates.check');
+    Route::post('/updates/run', [Admin\SelfUpdateController::class, 'run'])->name('updates.run');
+    // Advanced: per-file GitHub editor
+    Route::get('/updates/editor', [Admin\UpdatePanelController::class, 'index'])->name('updates.editor');
 
     // Settings
     Route::post('/settings/test-email', [Admin\SettingsController::class, 'sendTestEmail'])->name('settings.test-email');

@@ -22,7 +22,7 @@
         ['route' => 'admin.reports.index', 'icon' => 'chart', 'label' => __('Reports'), 'match' => 'admin.reports.*'],
         ['route' => 'admin.audit.index', 'icon' => 'eye', 'label' => __('Audit log'), 'match' => 'admin.audit.*'],
         ['route' => 'admin.addons.index', 'icon' => 'bolt', 'label' => __('Addons'), 'match' => 'admin.addons.*'],
-        ['route' => 'admin.updates', 'icon' => 'code', 'label' => __('Update / GitHub'), 'match' => 'admin.updates'],
+        ['route' => 'admin.updates', 'icon' => 'refresh', 'label' => __('Update'), 'match' => 'admin.updates*'],
         ['route' => 'admin.settings', 'icon' => 'settings', 'label' => __('Settings'), 'match' => 'admin.settings*'],
     ];
     $adminNav = hook_filter('admin_menu', $adminNav);
