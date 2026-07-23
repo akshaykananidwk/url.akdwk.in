@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,6 +13,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Trust the reverse proxy (aaPanel/Nginx/Apache/Cloudflare) so the app
+        // correctly detects HTTPS from X-Forwarded-Proto. Without this, a site
+        // served over HTTPS through a proxy looks like plain HTTP to Laravel,
+        // which breaks secure session cookies and CSRF — the usual cause of
+        // "forms don't save" / "419 Page Expired" on shared hosting.
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_HOST
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO
+            | Request::HEADER_X_FORWARDED_AWS_ELB);
+
         $middleware->web(append: [
             \App\Http\Middleware\EnsureInstalled::class,
             \App\Http\Middleware\SetLocale::class,
