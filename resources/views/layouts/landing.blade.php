@@ -93,6 +93,10 @@
         </div>
         <div class="border-t border-slate-200 dark:border-slate-800 py-5 text-center text-xs text-slate-400">
             © {{ date('Y') }} {{ site_name() }}. {{ __('All rights reserved.') }}
+            {{-- === UPDATE TEST MARKER (safe to remove) === --}}
+            <span class="ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 font-medium">
+                🟢 {{ __('Update test OK') }} · build 2026.07.22-1
+            </span>
         </div>
     </footer>
 
