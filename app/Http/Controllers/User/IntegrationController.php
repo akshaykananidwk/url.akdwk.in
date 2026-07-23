@@ -19,6 +19,10 @@ class IntegrationController extends Controller
             'templates' => $request->user()->utmTemplates()->orderBy('name')->get(),
             'channels' => $request->user()->alertChannels()->orderBy('created_at')->get(),
             'channelTypes' => AlertChannel::TYPES,
+            'accounts' => \App\Models\IntegrationAccount::where('user_id', $request->user()->id)->get()->keyBy('provider'),
+            'telegramBot' => setting('telegram_bot_username'),
+            'linkCode' => session('link_code'),
+            'linkProvider' => session('link_provider'),
         ]);
     }
 
@@ -109,6 +113,24 @@ class IntegrationController extends Controller
         $channel->delete();
 
         return back()->with('status', __('Channel removed.'));
+    }
+
+    /* ---------------------------------------------------------- bot linking */
+
+    public function connect(Request $request, string $provider)
+    {
+        abort_unless(in_array($provider, ['telegram', 'slack', 'discord'], true), 404);
+        $code = app(\App\Services\BotService::class)->makeLinkCode($request->user(), $provider);
+
+        return back()->with('link_code', $code)->with('link_provider', $provider);
+    }
+
+    public function disconnect(Request $request, \App\Models\IntegrationAccount $account)
+    {
+        abort_unless($account->user_id === $request->user()->id, 403);
+        $account->delete();
+
+        return back()->with('status', __('Disconnected.'));
     }
 
     /* --------------------------------------------------------------- AI */

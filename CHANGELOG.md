@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.4.0] — 2026-07-23
+
+### Added — Feature batch #4 (integrations & bots)
+- **Telegram bot** — connect your account from Integrations, then send the bot any URL to get a short link. Admin sets the token and one-click-connects the webhook in Settings → Bots.
+- **Slack** `/shorten` slash command (signing-secret verified).
+- **Discord** bot — `/shorten` slash command (Ed25519-verified interactions endpoint).
+- **Browser extension** (Chrome / Edge / Firefox) in `integrations/extension/` — shorten the current tab with an API key.
+- **WordPress plugin** in `integrations/wordpress/` — auto-shorten posts + `[shortl]` shortcode.
+- **Zapier / Make.com** recipe in `integrations/zapier/` using the REST API + click webhooks.
+
 ## [1.3.0] — 2026-07-23
 
 ### Added — Feature batch #3

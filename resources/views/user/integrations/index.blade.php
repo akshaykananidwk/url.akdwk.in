@@ -6,6 +6,47 @@
 @section('content')
 <div class="space-y-5 max-w-4xl">
 
+    {{-- Chat bots: connect Telegram / Slack / Discord --}}
+    <div class="card card-pad">
+        <h2 class="font-semibold">{{ __('Chat bots') }}</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('Connect a chat account, then shorten links by messaging the bot.') }}</p>
+
+        @if($linkCode)
+            <div class="mt-3 rounded-xl bg-brand-50 dark:bg-brand-950 text-brand-800 dark:text-brand-200 p-4 text-sm">
+                @if($linkProvider === 'telegram' && $telegramBot)
+                    {{ __('Open the bot and it will connect automatically:') }}
+                    <a href="https://t.me/{{ $telegramBot }}?start={{ $linkCode }}" target="_blank" class="btn-primary btn-sm mt-2">{{ __('Open Telegram bot') }}</a>
+                @else
+                    {{ __('Send this to the bot to connect:') }}
+                    <div class="mono text-lg font-bold mt-1">/start {{ $linkCode }}</div>
+                @endif
+                <div class="help mt-1">{{ __('This code expires in 15 minutes.') }}</div>
+            </div>
+        @endif
+
+        <div class="mt-4 grid sm:grid-cols-3 gap-3">
+            @foreach(['telegram' => 'Telegram', 'slack' => 'Slack', 'discord' => 'Discord'] as $prov => $label)
+                <div class="rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 p-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium text-sm">{{ $label }}</span>
+                        @if(isset($accounts[$prov]))<span class="badge-green">{{ __('Connected') }}</span>@endif
+                    </div>
+                    @if(isset($accounts[$prov]))
+                        <div class="text-xs text-slate-500 mt-1 truncate">{{ $accounts[$prov]->external_name ?: $accounts[$prov]->external_id }}</div>
+                        <x-confirm :action="route('integrations.disconnect', $accounts[$prov])" method="DELETE" :title="__('Disconnect :p?', ['p' => $label])">
+                            <button type="button" class="btn-ghost btn-sm text-rose-600 mt-2">{{ __('Disconnect') }}</button>
+                        </x-confirm>
+                    @else
+                        <form method="POST" action="{{ route('integrations.connect', $prov) }}" class="mt-2">@csrf
+                            <button class="btn-secondary btn-sm w-full">{{ __('Connect') }}</button>
+                        </form>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+        <p class="help mt-2">{{ __('Bots must first be configured by an admin (Admin → Settings → Bots).') }}</p>
+    </div>
+
     {{-- Click alerts --}}
     <div class="card card-pad">
         <div class="flex items-center justify-between gap-3">

@@ -106,6 +106,13 @@ class SettingsController extends Controller
                 'ai_model' => 'nullable|string|max:100',
                 'ai_spam_check' => 'nullable|boolean',
             ],
+            'bots' => [
+                'telegram_bot_token' => 'nullable|string|max:255',
+                'telegram_bot_username' => 'nullable|string|max:100',
+                'telegram_webhook_secret' => 'nullable|string|max:100',
+                'slack_signing_secret' => 'nullable|string|max:255',
+                'discord_public_key' => 'nullable|string|max:255',
+            ],
         ];
     }
 
@@ -114,6 +121,7 @@ class SettingsController extends Controller
         'smtp_password', 'captcha_secret', 'safe_browsing_key',
         'oauth_google_secret', 'oauth_facebook_secret', 'oauth_twitter_secret',
         'oauth_github_secret', 'oauth_apple_secret', 's3_secret', 'ai_key',
+        'telegram_bot_token', 'slack_signing_secret',
     ];
 
     public function index(Request $request, GatewayManager $gateways, ThemeManager $themes, string $tab = 'general')
@@ -191,6 +199,39 @@ class SettingsController extends Controller
         AuditLog::record('settings.updated', null, ['tab' => 'payments']);
 
         return back()->with('status', __('Payment settings saved.'));
+    }
+
+    /** Register the Telegram webhook with the bot token, generating a secret. */
+    public function setTelegramWebhook(Request $request)
+    {
+        $token = setting('telegram_bot_token');
+        if (! $token) {
+            return back()->withErrors(['telegram' => __('Save the bot token first.')]);
+        }
+
+        $secret = setting('telegram_webhook_secret');
+        if (! $secret) {
+            $secret = \Illuminate\Support\Str::random(24);
+            app(\App\Services\Support\SettingsRepository::class)->set('telegram_webhook_secret', $secret);
+        }
+
+        $url = rtrim(config('app.url'), '/') . '/webhooks/telegram/' . $secret;
+        try {
+            $res = \Illuminate\Support\Facades\Http::timeout(8)
+                ->get("https://api.telegram.org/bot{$token}/setWebhook", ['url' => $url]);
+            if (! $res->json('ok')) {
+                return back()->withErrors(['telegram' => __('Telegram rejected the webhook: ') . $res->json('description')]);
+            }
+            // fetch the bot username for the connect deep link
+            $me = \Illuminate\Support\Facades\Http::timeout(8)->get("https://api.telegram.org/bot{$token}/getMe");
+            if ($me->json('ok')) {
+                app(\App\Services\Support\SettingsRepository::class)->set('telegram_bot_username', $me->json('result.username'));
+            }
+        } catch (\Throwable $e) {
+            return back()->withErrors(['telegram' => $e->getMessage()]);
+        }
+
+        return back()->with('status', __('Telegram webhook connected. Your bot is live!'));
     }
 
     public function sendTestEmail(Request $request)

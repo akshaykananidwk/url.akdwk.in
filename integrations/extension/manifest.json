@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Shortl — URL Shortener",
+  "version": "1.0.0",
+  "description": "Shorten the current tab's URL with your self-hosted Shortl instance.",
+  "permissions": ["activeTab", "storage", "clipboardWrite"],
+  "action": { "default_popup": "popup.html", "default_title": "Shortl" },
+  "icons": { "48": "icon48.png", "128": "icon128.png" }
+}

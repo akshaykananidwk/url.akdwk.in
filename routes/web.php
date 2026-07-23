@@ -199,6 +199,8 @@ Route::middleware(['auth', 'not.suspended', 'verified.setting'])->group(function
     Route::post('/integrations/channels/{channel}/toggle', [User\IntegrationController::class, 'toggleChannel'])->name('integrations.channels.toggle');
     Route::post('/integrations/channels/{channel}/test', [User\IntegrationController::class, 'testChannel'])->name('integrations.channels.test');
     Route::delete('/integrations/channels/{channel}', [User\IntegrationController::class, 'destroyChannel'])->name('integrations.channels.destroy');
+    Route::post('/integrations/connect/{provider}', [User\IntegrationController::class, 'connect'])->name('integrations.connect');
+    Route::delete('/integrations/connect/{account}', [User\IntegrationController::class, 'disconnect'])->name('integrations.disconnect');
     Route::post('/links/ai-suggest', [User\IntegrationController::class, 'aiSuggest'])->name('links.ai-suggest');
 
     // Affiliate
@@ -229,6 +231,12 @@ Route::middleware(['auth', 'not.suspended', 'verified.setting'])->group(function
 
 // Team invite acceptance (login not required upfront)
 Route::get('/invite/{token}', [User\TeamController::class, 'accept'])->name('team.accept');
+
+// Chat bot webhooks (CSRF-exempt via webhooks/* rule) — registered BEFORE the
+// billing {gateway} catch-all so their specific paths win.
+Route::post('/webhooks/telegram/{secret}', [\App\Http\Controllers\BotController::class, 'telegram'])->name('bots.telegram');
+Route::post('/webhooks/slack/command', [\App\Http\Controllers\BotController::class, 'slack'])->name('bots.slack');
+Route::post('/webhooks/discord', [\App\Http\Controllers\BotController::class, 'discord'])->name('bots.discord');
 
 // Payment gateway webhooks (CSRF-exempt)
 Route::post('/webhooks/{gateway}', [User\BillingController::class, 'webhook'])->name('billing.webhook');
@@ -344,6 +352,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Settings
     Route::post('/settings/test-email', [Admin\SettingsController::class, 'sendTestEmail'])->name('settings.test-email');
+    Route::post('/settings/telegram-webhook', [Admin\SettingsController::class, 'setTelegramWebhook'])->name('settings.telegram-webhook');
     Route::post('/settings/branding', [Admin\SettingsController::class, 'uploadBranding'])->name('settings.branding');
     Route::put('/settings/payments', [Admin\SettingsController::class, 'updatePayments'])->name('settings.payments');
     Route::put('/settings/{tab}', [Admin\SettingsController::class, 'update'])->name('settings.update');

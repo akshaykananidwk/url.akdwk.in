@@ -1,0 +1,16 @@
+{
+  "create_link_request": {
+    "method": "POST",
+    "url": "https://YOUR-SITE/api/v1/links",
+    "headers": { "Authorization": "Bearer sk_xxx", "Content-Type": "application/json" },
+    "body": { "destination": "https://example.com/a/very/long/url", "title": "From Zapier" }
+  },
+  "create_link_response": {
+    "data": { "id": 123, "alias": "aB3xY", "short_url": "https://YOUR-SITE/aB3xY", "destination": "https://example.com/a/very/long/url" }
+  },
+  "webhook_click_created": {
+    "event": "click.created",
+    "data": { "link_id": 123, "alias": "aB3xY", "short_url": "https://YOUR-SITE/aB3xY", "country": "IN", "device": "mobile", "browser": "Chrome", "is_unique": true },
+    "sent_at": "2026-07-23T10:00:00+00:00"
+  }
+}
