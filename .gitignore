@@ -23,3 +23,7 @@ yarn-error.log
 /.zed
 /storage/installed.lock
 /database/database.sqlite
+
+# Python SDK build artifacts
+__pycache__/
+*.pyc
