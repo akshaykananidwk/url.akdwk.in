@@ -58,7 +58,13 @@ class RegisterController extends Controller
         hook_action('user_registered', $user);
 
         if (setting('require_email_verification', false)) {
-            $user->sendEmailVerificationNotification();
+            // A broken/empty SMTP config must never 500 a signup — the account is
+            // already created; the user can re-send from the "verify email" page.
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                report($e);
+            }
         } else {
             $user->forceFill(['email_verified_at' => now()])->save();
         }

@@ -34,7 +34,13 @@ class VerificationController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        try {
+            $request->user()->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors(['email' => __('We could not send the email right now. Please try again later or contact support.')]);
+        }
 
         return back()->with('status', __('A new verification link has been sent to your email address.'));
     }

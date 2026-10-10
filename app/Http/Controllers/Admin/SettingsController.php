@@ -238,6 +238,13 @@ class SettingsController extends Controller
     {
         $request->validate(['to' => 'required|email']);
 
+        // If no SMTP host is configured the mailer falls back to the "log" driver,
+        // which silently writes to storage/logs instead of actually sending — warn
+        // the admin rather than reporting a misleading success.
+        if (! setting('smtp_host') && config('mail.default') === 'log') {
+            return back()->withErrors(['to' => __('SMTP is not configured yet, so no real email was sent. Fill in the SMTP host/port/username/password above, save, then test again.')]);
+        }
+
         try {
             Mail::raw(
                 __('This is a test email from :site. Your SMTP settings are working correctly!', ['site' => site_name()]),
